@@ -23,7 +23,6 @@ if (typeof module !== "undefined") {
 }
 
 var $packages = {}, $idCounter = 0;
-$global.mubtest = $packages
 var $keys = function(m) { return m ? Object.keys(m) : []; };
 var $flushConsole = function() {};
 var $throwRuntimeError; /* set by package "runtime" */
@@ -4942,7 +4941,7 @@ $packages["internal/syscall/windows/registry"] = (function() {
 	return $pkg;
 })();
 $packages["time"] = (function() {
-	var $pkg = {}, $init, errors, js, nosync, registry, runtime, syscall, ParseError, Time, Month, Weekday, Duration, Location, zone, zoneTrans, sliceType, sliceType$1, ptrType, sliceType$2, arrayType$1, sliceType$3, arrayType$2, arrayType$3, ptrType$1, arrayType$5, ptrType$3, ptrType$6, std0x, longDayNames, shortDayNames, shortMonthNames, longMonthNames, atoiError, errBad, errLeadingInt, months, days, daysBefore, utcLoc, utcLoc$24ptr, localLoc, localLoc$24ptr, localOnce, zoneinfo, badData, _tuple, init, initLocal, indexByte, startsWithLowerCase, nextStdChunk, match, lookup, appendInt, atoi, formatNano, quote, isDigit, getnum, cutspace, skip, Parse, parse, parseTimeZone, parseGMT, parseNanoseconds, leadingInt, absWeekday, absClock, fmtFrac, fmtInt, absDate, daysIn, Unix, isLeap, norm, Date, div, FixedZone;
+	var $pkg = {}, $init, errors, js, nosync, registry, runtime, syscall, ParseError, Time, Month, Weekday, Duration, Location, zone, zoneTrans, sliceType, sliceType$1, ptrType, sliceType$2, arrayType$1, sliceType$3, arrayType$2, arrayType$3, ptrType$1, arrayType$5, ptrType$3, ptrType$6, std0x, longDayNames, shortDayNames, shortMonthNames, longMonthNames, atoiError, errBad, errLeadingInt, months, days, daysBefore, utcLoc, utcLoc$24ptr, localLoc, localLoc$24ptr, localOnce, zoneinfo, badData, _tuple, init, initLocal, runtimeNano, now, indexByte, startsWithLowerCase, nextStdChunk, match, lookup, appendInt, atoi, formatNano, quote, isDigit, getnum, cutspace, skip, Parse, parse, parseTimeZone, parseGMT, parseNanoseconds, leadingInt, absWeekday, absClock, fmtFrac, fmtInt, absDate, daysIn, Now, Unix, isLeap, norm, Date, div, FixedZone;
 	errors = $packages["errors"];
 	js = $packages["github.com/gopherjs/gopherjs/js"];
 	nosync = $packages["github.com/gopherjs/gopherjs/nosync"];
@@ -5052,6 +5051,21 @@ $packages["time"] = (function() {
 		}
 		localLoc.name = s.substring((i + 1 >> 0), j);
 		localLoc.zone = new sliceType([new zone.ptr(localLoc.name, $imul(($parseInt(d.getTimezoneOffset()) >> 0), -60), false)]);
+	};
+	runtimeNano = function() {
+		var $ptr;
+		return $mul64($internalize(new ($global.Date)().getTime(), $Int64), new $Int64(0, 1000000));
+	};
+	now = function() {
+		var $ptr, _tmp, _tmp$1, n, nsec, sec, x;
+		sec = new $Int64(0, 0);
+		nsec = 0;
+		n = runtimeNano();
+		_tmp = $div64(n, new $Int64(0, 1000000000), false);
+		_tmp$1 = ((x = $div64(n, new $Int64(0, 1000000000), true), x.$low + ((x.$high >> 31) * 4294967296)) >> 0);
+		sec = _tmp;
+		nsec = _tmp$1;
+		return [sec, nsec];
 	};
 	indexByte = function(s, c) {
 		var $ptr, c, s;
@@ -6896,6 +6910,14 @@ $packages["time"] = (function() {
 		}
 		return ((((m < 0 || m >= daysBefore.length) ? $throwRuntimeError("index out of range") : daysBefore[m]) - (x = m - 1 >> 0, ((x < 0 || x >= daysBefore.length) ? $throwRuntimeError("index out of range") : daysBefore[x])) >> 0) >> 0);
 	};
+	Now = function() {
+		var $ptr, _tuple$1, nsec, sec;
+		_tuple$1 = now();
+		sec = _tuple$1[0];
+		nsec = _tuple$1[1];
+		return new Time.ptr(new $Int64(sec.$high + 14, sec.$low + 2006054656), nsec, $pkg.Local);
+	};
+	$pkg.Now = Now;
 	Time.ptr.prototype.UTC = function() {
 		var $ptr, t;
 		t = $clone(this, Time);
@@ -7584,7 +7606,7 @@ $packages["time"] = (function() {
 	return $pkg;
 })();
 $packages["unicode/utf8"] = (function() {
-	var $pkg = {}, $init, acceptRange, first, acceptRanges, FullRune, DecodeRune, DecodeRuneInString, DecodeLastRuneInString, RuneLen, EncodeRune, RuneCount, RuneCountInString, RuneStart, ValidRune;
+	var $pkg = {}, $init, acceptRange, first, acceptRanges, FullRune, DecodeRune, DecodeRuneInString, RuneLen, EncodeRune, RuneCount, RuneCountInString, ValidRune;
 	acceptRange = $pkg.acceptRange = $newType(0, $kindStruct, "utf8.acceptRange", true, "unicode/utf8", false, function(lo_, hi_) {
 		this.$val = this;
 		if (arguments.length === 0) {
@@ -7769,59 +7791,6 @@ $packages["unicode/utf8"] = (function() {
 		return [r, size];
 	};
 	$pkg.DecodeRuneInString = DecodeRuneInString;
-	DecodeLastRuneInString = function(s) {
-		var $ptr, _tmp, _tmp$1, _tmp$2, _tmp$3, _tmp$4, _tmp$5, _tmp$6, _tmp$7, _tuple, end, lim, r, s, size, start;
-		r = 0;
-		size = 0;
-		end = s.length;
-		if (end === 0) {
-			_tmp = 65533;
-			_tmp$1 = 0;
-			r = _tmp;
-			size = _tmp$1;
-			return [r, size];
-		}
-		start = end - 1 >> 0;
-		r = (s.charCodeAt(start) >> 0);
-		if (r < 128) {
-			_tmp$2 = r;
-			_tmp$3 = 1;
-			r = _tmp$2;
-			size = _tmp$3;
-			return [r, size];
-		}
-		lim = end - 4 >> 0;
-		if (lim < 0) {
-			lim = 0;
-		}
-		start = start - (1) >> 0;
-		while (true) {
-			if (!(start >= lim)) { break; }
-			if (RuneStart(s.charCodeAt(start))) {
-				break;
-			}
-			start = start - (1) >> 0;
-		}
-		if (start < 0) {
-			start = 0;
-		}
-		_tuple = DecodeRuneInString(s.substring(start, end));
-		r = _tuple[0];
-		size = _tuple[1];
-		if (!(((start + size >> 0) === end))) {
-			_tmp$4 = 65533;
-			_tmp$5 = 1;
-			r = _tmp$4;
-			size = _tmp$5;
-			return [r, size];
-		}
-		_tmp$6 = r;
-		_tmp$7 = size;
-		r = _tmp$6;
-		size = _tmp$7;
-		return [r, size];
-	};
-	$pkg.DecodeLastRuneInString = DecodeLastRuneInString;
 	RuneLen = function(r) {
 		var $ptr, r;
 		if (r < 0) {
@@ -7964,11 +7933,6 @@ $packages["unicode/utf8"] = (function() {
 		return n;
 	};
 	$pkg.RuneCountInString = RuneCountInString;
-	RuneStart = function(b) {
-		var $ptr, b;
-		return !((((b & 192) >>> 0) === 128));
-	};
-	$pkg.RuneStart = RuneStart;
 	ValidRune = function(r) {
 		var $ptr, r;
 		if (r < 0) {
@@ -15383,7 +15347,7 @@ $packages["reflect"] = (function() {
 	return $pkg;
 })();
 $packages["fmt"] = (function() {
-	var $pkg = {}, $init, errors, io, math, os, reflect, strconv, sync, utf8, fmtFlags, fmt, State, Formatter, Stringer, GoStringer, buffer, pp, scanError, ss, ssave, sliceType, ptrType, ptrType$1, arrayType, arrayType$1, sliceType$1, sliceType$2, ptrType$2, ptrType$5, ptrType$25, funcType, ppFree, byteType, space, ssFree, complexError, boolError, newPrinter, Fprintln, Println, getField, isSpace, notSpace, indexRune;
+	var $pkg = {}, $init, errors, io, math, os, reflect, strconv, sync, utf8, fmtFlags, fmt, State, Formatter, Stringer, GoStringer, buffer, pp, scanError, ss, ssave, sliceType, ptrType, ptrType$1, arrayType, arrayType$1, sliceType$1, sliceType$2, ptrType$2, ptrType$5, ptrType$25, funcType, ppFree, byteType, space, ssFree, complexError, boolError, newPrinter, Sprint, getField, isSpace, notSpace, indexRune;
 	errors = $packages["errors"];
 	io = $packages["io"];
 	math = $packages["math"];
@@ -16033,38 +15997,19 @@ $packages["fmt"] = (function() {
 		return [ret, err];
 	};
 	pp.prototype.Write = function(b) { return this.$val.Write(b); };
-	Fprintln = function(w, a) {
-		var $ptr, _r, _r$1, _tuple, a, err, n, p, w, x, $s, $r;
-		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; _r$1 = $f._r$1; _tuple = $f._tuple; a = $f.a; err = $f.err; n = $f.n; p = $f.p; w = $f.w; x = $f.x; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		n = 0;
-		err = $ifaceNil;
+	Sprint = function(a) {
+		var $ptr, _r, a, p, s, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; a = $f.a; p = $f.p; s = $f.s; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
 		_r = newPrinter(); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
 		p = _r;
-		$r = p.doPrintln(a); /* */ $s = 2; case 2: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
-		_r$1 = w.Write((x = p.buf, $subslice(new sliceType$2(x.$array), x.$offset, x.$offset + x.$length))); /* */ $s = 3; case 3: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
-		_tuple = _r$1;
-		n = _tuple[0];
-		err = _tuple[1];
+		$r = p.doPrint(a); /* */ $s = 2; case 2: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+		s = $bytesToString(p.buf);
 		p.free();
-		$s = -1; return [n, err];
-		return [n, err];
-		/* */ } return; } if ($f === undefined) { $f = { $blk: Fprintln }; } $f.$ptr = $ptr; $f._r = _r; $f._r$1 = _r$1; $f._tuple = _tuple; $f.a = a; $f.err = err; $f.n = n; $f.p = p; $f.w = w; $f.x = x; $f.$s = $s; $f.$r = $r; return $f;
+		$s = -1; return s;
+		return s;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: Sprint }; } $f.$ptr = $ptr; $f._r = _r; $f.a = a; $f.p = p; $f.s = s; $f.$s = $s; $f.$r = $r; return $f;
 	};
-	$pkg.Fprintln = Fprintln;
-	Println = function(a) {
-		var $ptr, _r, _tuple, a, err, n, $s, $r;
-		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; _tuple = $f._tuple; a = $f.a; err = $f.err; n = $f.n; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		n = 0;
-		err = $ifaceNil;
-		_r = Fprintln(os.Stdout, a); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
-		_tuple = _r;
-		n = _tuple[0];
-		err = _tuple[1];
-		$s = -1; return [n, err];
-		return [n, err];
-		/* */ } return; } if ($f === undefined) { $f = { $blk: Println }; } $f.$ptr = $ptr; $f._r = _r; $f._tuple = _tuple; $f.a = a; $f.err = err; $f.n = n; $f.$s = $s; $f.$r = $r; return $f;
-	};
-	$pkg.Println = Println;
+	$pkg.Sprint = Sprint;
 	getField = function(v, i) {
 		var $ptr, _r, _r$1, i, v, val, $s, $r;
 		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; _r$1 = $f._r$1; i = $f.i; v = $f.v; val = $f.val; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
@@ -17006,28 +16951,33 @@ $packages["fmt"] = (function() {
 		/* */ } return; } if ($f === undefined) { $f = { $blk: pp.ptr.prototype.printValue }; } $f.$ptr = $ptr; $f._1 = _1; $f._2 = _2; $f._3 = _3; $f._4 = _4; $f._arg = _arg; $f._arg$1 = _arg$1; $f._arg$2 = _arg$2; $f._i = _i; $f._i$1 = _i$1; $f._r = _r; $f._r$1 = _r$1; $f._r$10 = _r$10; $f._r$11 = _r$11; $f._r$12 = _r$12; $f._r$13 = _r$13; $f._r$14 = _r$14; $f._r$15 = _r$15; $f._r$16 = _r$16; $f._r$17 = _r$17; $f._r$18 = _r$18; $f._r$19 = _r$19; $f._r$2 = _r$2; $f._r$20 = _r$20; $f._r$21 = _r$21; $f._r$22 = _r$22; $f._r$3 = _r$3; $f._r$4 = _r$4; $f._r$5 = _r$5; $f._r$6 = _r$6; $f._r$7 = _r$7; $f._r$8 = _r$8; $f._r$9 = _r$9; $f._ref = _ref; $f._ref$1 = _ref$1; $f.a = a; $f.bytes = bytes; $f.depth = depth; $f.f = f; $f.i = i; $f.i$1 = i$1; $f.i$2 = i$2; $f.i$3 = i$3; $f.i$4 = i$4; $f.key = key; $f.keys = keys; $f.name = name; $f.p = p; $f.t = t; $f.value = value; $f.value$1 = value$1; $f.verb = verb; $f.x = x; $f.$s = $s; $f.$r = $r; return $f;
 	};
 	pp.prototype.printValue = function(value, verb, depth) { return this.$val.printValue(value, verb, depth); };
-	pp.ptr.prototype.doPrintln = function(a) {
-		var $ptr, _i, _ref, a, arg, argNum, p, $s, $r;
-		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _i = $f._i; _ref = $f._ref; a = $f.a; arg = $f.arg; argNum = $f.argNum; p = $f.p; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+	pp.ptr.prototype.doPrint = function(a) {
+		var $ptr, _i, _r, _ref, _v, a, arg, argNum, isString, p, prevString, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _i = $f._i; _r = $f._r; _ref = $f._ref; _v = $f._v; a = $f.a; arg = $f.arg; argNum = $f.argNum; isString = $f.isString; p = $f.p; prevString = $f.prevString; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
 		p = this;
+		prevString = false;
 		_ref = a;
 		_i = 0;
 		/* while (true) { */ case 1:
 			/* if (!(_i < _ref.$length)) { break; } */ if(!(_i < _ref.$length)) { $s = 2; continue; }
 			argNum = _i;
 			arg = ((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]);
-			if (argNum > 0) {
+			if (!(!($interfaceIsEqual(arg, $ifaceNil)))) { _v = false; $s = 3; continue s; }
+			_r = reflect.TypeOf(arg).Kind(); /* */ $s = 4; case 4: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
+			_v = _r === 24; case 3:
+			isString = _v;
+			if (argNum > 0 && !isString && !prevString) {
 				(p.$ptr_buf || (p.$ptr_buf = new ptrType$1(function() { return this.$target.buf; }, function($v) { this.$target.buf = $v; }, p))).WriteByte(32);
 			}
-			$r = p.printArg(arg, 118); /* */ $s = 3; case 3: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+			$r = p.printArg(arg, 118); /* */ $s = 5; case 5: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+			prevString = isString;
 			_i++;
 		/* } */ $s = 1; continue; case 2:
-		(p.$ptr_buf || (p.$ptr_buf = new ptrType$1(function() { return this.$target.buf; }, function($v) { this.$target.buf = $v; }, p))).WriteByte(10);
 		$s = -1; return;
 		return;
-		/* */ } return; } if ($f === undefined) { $f = { $blk: pp.ptr.prototype.doPrintln }; } $f.$ptr = $ptr; $f._i = _i; $f._ref = _ref; $f.a = a; $f.arg = arg; $f.argNum = argNum; $f.p = p; $f.$s = $s; $f.$r = $r; return $f;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: pp.ptr.prototype.doPrint }; } $f.$ptr = $ptr; $f._i = _i; $f._r = _r; $f._ref = _ref; $f._v = _v; $f.a = a; $f.arg = arg; $f.argNum = argNum; $f.isString = isString; $f.p = p; $f.prevString = prevString; $f.$s = $s; $f.$r = $r; return $f;
 	};
-	pp.prototype.doPrintln = function(a) { return this.$val.doPrintln(a); };
+	pp.prototype.doPrint = function(a) { return this.$val.doPrint(a); };
 	ss.ptr.prototype.Read = function(buf) {
 		var $ptr, _tmp, _tmp$1, buf, err, n, s;
 		n = 0;
@@ -17370,1304 +17320,8 @@ $packages["fmt"] = (function() {
 	$pkg.$init = $init;
 	return $pkg;
 })();
-$packages["unicode"] = (function() {
-	var $pkg = {}, $init, RangeTable, Range16, Range32, sliceType, sliceType$1, _White_Space, IsSpace, is16, is32, isExcludingLatin;
-	RangeTable = $pkg.RangeTable = $newType(0, $kindStruct, "unicode.RangeTable", true, "unicode", true, function(R16_, R32_, LatinOffset_) {
-		this.$val = this;
-		if (arguments.length === 0) {
-			this.R16 = sliceType.nil;
-			this.R32 = sliceType$1.nil;
-			this.LatinOffset = 0;
-			return;
-		}
-		this.R16 = R16_;
-		this.R32 = R32_;
-		this.LatinOffset = LatinOffset_;
-	});
-	Range16 = $pkg.Range16 = $newType(0, $kindStruct, "unicode.Range16", true, "unicode", true, function(Lo_, Hi_, Stride_) {
-		this.$val = this;
-		if (arguments.length === 0) {
-			this.Lo = 0;
-			this.Hi = 0;
-			this.Stride = 0;
-			return;
-		}
-		this.Lo = Lo_;
-		this.Hi = Hi_;
-		this.Stride = Stride_;
-	});
-	Range32 = $pkg.Range32 = $newType(0, $kindStruct, "unicode.Range32", true, "unicode", true, function(Lo_, Hi_, Stride_) {
-		this.$val = this;
-		if (arguments.length === 0) {
-			this.Lo = 0;
-			this.Hi = 0;
-			this.Stride = 0;
-			return;
-		}
-		this.Lo = Lo_;
-		this.Hi = Hi_;
-		this.Stride = Stride_;
-	});
-	sliceType = $sliceType(Range16);
-	sliceType$1 = $sliceType(Range32);
-	IsSpace = function(r) {
-		var $ptr, _1, r;
-		if ((r >>> 0) <= 255) {
-			_1 = r;
-			if ((_1 === (9)) || (_1 === (10)) || (_1 === (11)) || (_1 === (12)) || (_1 === (13)) || (_1 === (32)) || (_1 === (133)) || (_1 === (160))) {
-				return true;
-			}
-			return false;
-		}
-		return isExcludingLatin($pkg.White_Space, r);
-	};
-	$pkg.IsSpace = IsSpace;
-	is16 = function(ranges, r) {
-		var $ptr, _i, _q, _r, _r$1, _ref, hi, i, lo, m, r, range_, range_$1, ranges;
-		if (ranges.$length <= 18 || r <= 255) {
-			_ref = ranges;
-			_i = 0;
-			while (true) {
-				if (!(_i < _ref.$length)) { break; }
-				i = _i;
-				range_ = ((i < 0 || i >= ranges.$length) ? $throwRuntimeError("index out of range") : ranges.$array[ranges.$offset + i]);
-				if (r < range_.Lo) {
-					return false;
-				}
-				if (r <= range_.Hi) {
-					return (_r = ((r - range_.Lo << 16 >>> 16)) % range_.Stride, _r === _r ? _r : $throwRuntimeError("integer divide by zero")) === 0;
-				}
-				_i++;
-			}
-			return false;
-		}
-		lo = 0;
-		hi = ranges.$length;
-		while (true) {
-			if (!(lo < hi)) { break; }
-			m = lo + (_q = ((hi - lo >> 0)) / 2, (_q === _q && _q !== 1/0 && _q !== -1/0) ? _q >> 0 : $throwRuntimeError("integer divide by zero")) >> 0;
-			range_$1 = ((m < 0 || m >= ranges.$length) ? $throwRuntimeError("index out of range") : ranges.$array[ranges.$offset + m]);
-			if (range_$1.Lo <= r && r <= range_$1.Hi) {
-				return (_r$1 = ((r - range_$1.Lo << 16 >>> 16)) % range_$1.Stride, _r$1 === _r$1 ? _r$1 : $throwRuntimeError("integer divide by zero")) === 0;
-			}
-			if (r < range_$1.Lo) {
-				hi = m;
-			} else {
-				lo = m + 1 >> 0;
-			}
-		}
-		return false;
-	};
-	is32 = function(ranges, r) {
-		var $ptr, _i, _q, _r, _r$1, _ref, hi, i, lo, m, r, range_, range_$1, ranges;
-		if (ranges.$length <= 18) {
-			_ref = ranges;
-			_i = 0;
-			while (true) {
-				if (!(_i < _ref.$length)) { break; }
-				i = _i;
-				range_ = ((i < 0 || i >= ranges.$length) ? $throwRuntimeError("index out of range") : ranges.$array[ranges.$offset + i]);
-				if (r < range_.Lo) {
-					return false;
-				}
-				if (r <= range_.Hi) {
-					return (_r = ((r - range_.Lo >>> 0)) % range_.Stride, _r === _r ? _r : $throwRuntimeError("integer divide by zero")) === 0;
-				}
-				_i++;
-			}
-			return false;
-		}
-		lo = 0;
-		hi = ranges.$length;
-		while (true) {
-			if (!(lo < hi)) { break; }
-			m = lo + (_q = ((hi - lo >> 0)) / 2, (_q === _q && _q !== 1/0 && _q !== -1/0) ? _q >> 0 : $throwRuntimeError("integer divide by zero")) >> 0;
-			range_$1 = $clone(((m < 0 || m >= ranges.$length) ? $throwRuntimeError("index out of range") : ranges.$array[ranges.$offset + m]), Range32);
-			if (range_$1.Lo <= r && r <= range_$1.Hi) {
-				return (_r$1 = ((r - range_$1.Lo >>> 0)) % range_$1.Stride, _r$1 === _r$1 ? _r$1 : $throwRuntimeError("integer divide by zero")) === 0;
-			}
-			if (r < range_$1.Lo) {
-				hi = m;
-			} else {
-				lo = m + 1 >> 0;
-			}
-		}
-		return false;
-	};
-	isExcludingLatin = function(rangeTab, r) {
-		var $ptr, off, r, r16, r32, rangeTab, x;
-		r16 = rangeTab.R16;
-		off = rangeTab.LatinOffset;
-		if (r16.$length > off && r <= ((x = r16.$length - 1 >> 0, ((x < 0 || x >= r16.$length) ? $throwRuntimeError("index out of range") : r16.$array[r16.$offset + x])).Hi >> 0)) {
-			return is16($subslice(r16, off), (r << 16 >>> 16));
-		}
-		r32 = rangeTab.R32;
-		if (r32.$length > 0 && r >= ((0 >= r32.$length ? $throwRuntimeError("index out of range") : r32.$array[r32.$offset + 0]).Lo >> 0)) {
-			return is32(r32, (r >>> 0));
-		}
-		return false;
-	};
-	RangeTable.init("", [{prop: "R16", name: "R16", exported: true, typ: sliceType, tag: ""}, {prop: "R32", name: "R32", exported: true, typ: sliceType$1, tag: ""}, {prop: "LatinOffset", name: "LatinOffset", exported: true, typ: $Int, tag: ""}]);
-	Range16.init("", [{prop: "Lo", name: "Lo", exported: true, typ: $Uint16, tag: ""}, {prop: "Hi", name: "Hi", exported: true, typ: $Uint16, tag: ""}, {prop: "Stride", name: "Stride", exported: true, typ: $Uint16, tag: ""}]);
-	Range32.init("", [{prop: "Lo", name: "Lo", exported: true, typ: $Uint32, tag: ""}, {prop: "Hi", name: "Hi", exported: true, typ: $Uint32, tag: ""}, {prop: "Stride", name: "Stride", exported: true, typ: $Uint32, tag: ""}]);
-	$init = function() {
-		$pkg.$init = function() {};
-		/* */ var $f, $c = false, $s = 0, $r; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		_White_Space = new RangeTable.ptr(new sliceType([new Range16.ptr(9, 13, 1), new Range16.ptr(32, 32, 1), new Range16.ptr(133, 133, 1), new Range16.ptr(160, 160, 1), new Range16.ptr(5760, 5760, 1), new Range16.ptr(8192, 8202, 1), new Range16.ptr(8232, 8233, 1), new Range16.ptr(8239, 8239, 1), new Range16.ptr(8287, 8287, 1), new Range16.ptr(12288, 12288, 1)]), sliceType$1.nil, 4);
-		$pkg.White_Space = _White_Space;
-		/* */ } return; } if ($f === undefined) { $f = { $blk: $init }; } $f.$s = $s; $f.$r = $r; return $f;
-	};
-	$pkg.$init = $init;
-	return $pkg;
-})();
-$packages["strings"] = (function() {
-	var $pkg = {}, $init, errors, js, io, unicode, utf8, sliceType$3, Index, Count, explode, genSplit, Split, HasPrefix, HasSuffix, TrimLeftFunc, TrimRightFunc, TrimFunc, indexFunc, lastIndexFunc, TrimSpace, TrimSuffix;
-	errors = $packages["errors"];
-	js = $packages["github.com/gopherjs/gopherjs/js"];
-	io = $packages["io"];
-	unicode = $packages["unicode"];
-	utf8 = $packages["unicode/utf8"];
-	sliceType$3 = $sliceType($String);
-	Index = function(s, sep) {
-		var $ptr, s, sep;
-		return $parseInt(s.indexOf(sep)) >> 0;
-	};
-	$pkg.Index = Index;
-	Count = function(s, sep) {
-		var $ptr, n, pos, s, sep;
-		n = 0;
-		if ((sep.length === 0)) {
-			return utf8.RuneCountInString(s) + 1 >> 0;
-		} else if (sep.length > s.length) {
-			return 0;
-		} else if ((sep.length === s.length)) {
-			if (sep === s) {
-				return 1;
-			}
-			return 0;
-		}
-		while (true) {
-			pos = Index(s, sep);
-			if (pos === -1) {
-				break;
-			}
-			n = n + (1) >> 0;
-			s = s.substring((pos + sep.length >> 0));
-		}
-		return n;
-	};
-	$pkg.Count = Count;
-	explode = function(s, n) {
-		var $ptr, _tuple, a, ch, i, l, n, s, size, x;
-		l = utf8.RuneCountInString(s);
-		if (n < 0 || n > l) {
-			n = l;
-		}
-		a = $makeSlice(sliceType$3, n);
-		i = 0;
-		while (true) {
-			if (!(i < (n - 1 >> 0))) { break; }
-			_tuple = utf8.DecodeRuneInString(s);
-			ch = _tuple[0];
-			size = _tuple[1];
-			((i < 0 || i >= a.$length) ? $throwRuntimeError("index out of range") : a.$array[a.$offset + i] = s.substring(0, size));
-			s = s.substring(size);
-			if (ch === 65533) {
-				((i < 0 || i >= a.$length) ? $throwRuntimeError("index out of range") : a.$array[a.$offset + i] = "\xEF\xBF\xBD");
-			}
-			i = i + (1) >> 0;
-		}
-		if (n > 0) {
-			(x = n - 1 >> 0, ((x < 0 || x >= a.$length) ? $throwRuntimeError("index out of range") : a.$array[a.$offset + x] = s));
-		}
-		return a;
-	};
-	genSplit = function(s, sep, sepSave, n) {
-		var $ptr, a, c, i, n, na, s, sep, sepSave, start;
-		if (n === 0) {
-			return sliceType$3.nil;
-		}
-		if (sep === "") {
-			return explode(s, n);
-		}
-		if (n < 0) {
-			n = Count(s, sep) + 1 >> 0;
-		}
-		c = sep.charCodeAt(0);
-		start = 0;
-		a = $makeSlice(sliceType$3, n);
-		na = 0;
-		i = 0;
-		while (true) {
-			if (!((i + sep.length >> 0) <= s.length && (na + 1 >> 0) < n)) { break; }
-			if ((s.charCodeAt(i) === c) && ((sep.length === 1) || s.substring(i, (i + sep.length >> 0)) === sep)) {
-				((na < 0 || na >= a.$length) ? $throwRuntimeError("index out of range") : a.$array[a.$offset + na] = s.substring(start, (i + sepSave >> 0)));
-				na = na + (1) >> 0;
-				start = i + sep.length >> 0;
-				i = i + ((sep.length - 1 >> 0)) >> 0;
-			}
-			i = i + (1) >> 0;
-		}
-		((na < 0 || na >= a.$length) ? $throwRuntimeError("index out of range") : a.$array[a.$offset + na] = s.substring(start));
-		return $subslice(a, 0, (na + 1 >> 0));
-	};
-	Split = function(s, sep) {
-		var $ptr, s, sep;
-		return genSplit(s, sep, 0, -1);
-	};
-	$pkg.Split = Split;
-	HasPrefix = function(s, prefix) {
-		var $ptr, prefix, s;
-		return s.length >= prefix.length && s.substring(0, prefix.length) === prefix;
-	};
-	$pkg.HasPrefix = HasPrefix;
-	HasSuffix = function(s, suffix) {
-		var $ptr, s, suffix;
-		return s.length >= suffix.length && s.substring((s.length - suffix.length >> 0)) === suffix;
-	};
-	$pkg.HasSuffix = HasSuffix;
-	TrimLeftFunc = function(s, f) {
-		var $ptr, _r, f, i, s, $s, $r;
-		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; f = $f.f; i = $f.i; s = $f.s; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		_r = indexFunc(s, f, false); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
-		i = _r;
-		if (i === -1) {
-			$s = -1; return "";
-			return "";
-		}
-		$s = -1; return s.substring(i);
-		return s.substring(i);
-		/* */ } return; } if ($f === undefined) { $f = { $blk: TrimLeftFunc }; } $f.$ptr = $ptr; $f._r = _r; $f.f = f; $f.i = i; $f.s = s; $f.$s = $s; $f.$r = $r; return $f;
-	};
-	$pkg.TrimLeftFunc = TrimLeftFunc;
-	TrimRightFunc = function(s, f) {
-		var $ptr, _r, _tuple, f, i, s, wid, $s, $r;
-		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; _tuple = $f._tuple; f = $f.f; i = $f.i; s = $f.s; wid = $f.wid; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		_r = lastIndexFunc(s, f, false); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
-		i = _r;
-		if (i >= 0 && s.charCodeAt(i) >= 128) {
-			_tuple = utf8.DecodeRuneInString(s.substring(i));
-			wid = _tuple[1];
-			i = i + (wid) >> 0;
-		} else {
-			i = i + (1) >> 0;
-		}
-		$s = -1; return s.substring(0, i);
-		return s.substring(0, i);
-		/* */ } return; } if ($f === undefined) { $f = { $blk: TrimRightFunc }; } $f.$ptr = $ptr; $f._r = _r; $f._tuple = _tuple; $f.f = f; $f.i = i; $f.s = s; $f.wid = wid; $f.$s = $s; $f.$r = $r; return $f;
-	};
-	$pkg.TrimRightFunc = TrimRightFunc;
-	TrimFunc = function(s, f) {
-		var $ptr, _r, _r$1, f, s, $s, $r;
-		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; _r$1 = $f._r$1; f = $f.f; s = $f.s; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		_r = TrimLeftFunc(s, f); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
-		_r$1 = TrimRightFunc(_r, f); /* */ $s = 2; case 2: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
-		$s = -1; return _r$1;
-		return _r$1;
-		/* */ } return; } if ($f === undefined) { $f = { $blk: TrimFunc }; } $f.$ptr = $ptr; $f._r = _r; $f._r$1 = _r$1; $f.f = f; $f.s = s; $f.$s = $s; $f.$r = $r; return $f;
-	};
-	$pkg.TrimFunc = TrimFunc;
-	indexFunc = function(s, f, truth) {
-		var $ptr, _r, _tuple, f, r, s, start, truth, wid, $s, $r;
-		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; _tuple = $f._tuple; f = $f.f; r = $f.r; s = $f.s; start = $f.start; truth = $f.truth; wid = $f.wid; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		start = 0;
-		/* while (true) { */ case 1:
-			/* if (!(start < s.length)) { break; } */ if(!(start < s.length)) { $s = 2; continue; }
-			wid = 1;
-			r = (s.charCodeAt(start) >> 0);
-			if (r >= 128) {
-				_tuple = utf8.DecodeRuneInString(s.substring(start));
-				r = _tuple[0];
-				wid = _tuple[1];
-			}
-			_r = f(r); /* */ $s = 5; case 5: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
-			/* */ if (_r === truth) { $s = 3; continue; }
-			/* */ $s = 4; continue;
-			/* if (_r === truth) { */ case 3:
-				$s = -1; return start;
-				return start;
-			/* } */ case 4:
-			start = start + (wid) >> 0;
-		/* } */ $s = 1; continue; case 2:
-		$s = -1; return -1;
-		return -1;
-		/* */ } return; } if ($f === undefined) { $f = { $blk: indexFunc }; } $f.$ptr = $ptr; $f._r = _r; $f._tuple = _tuple; $f.f = f; $f.r = r; $f.s = s; $f.start = start; $f.truth = truth; $f.wid = wid; $f.$s = $s; $f.$r = $r; return $f;
-	};
-	lastIndexFunc = function(s, f, truth) {
-		var $ptr, _r, _tuple, f, i, r, s, size, truth, $s, $r;
-		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; _tuple = $f._tuple; f = $f.f; i = $f.i; r = $f.r; s = $f.s; size = $f.size; truth = $f.truth; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		i = s.length;
-		/* while (true) { */ case 1:
-			/* if (!(i > 0)) { break; } */ if(!(i > 0)) { $s = 2; continue; }
-			_tuple = utf8.DecodeLastRuneInString(s.substring(0, i));
-			r = _tuple[0];
-			size = _tuple[1];
-			i = i - (size) >> 0;
-			_r = f(r); /* */ $s = 5; case 5: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
-			/* */ if (_r === truth) { $s = 3; continue; }
-			/* */ $s = 4; continue;
-			/* if (_r === truth) { */ case 3:
-				$s = -1; return i;
-				return i;
-			/* } */ case 4:
-		/* } */ $s = 1; continue; case 2:
-		$s = -1; return -1;
-		return -1;
-		/* */ } return; } if ($f === undefined) { $f = { $blk: lastIndexFunc }; } $f.$ptr = $ptr; $f._r = _r; $f._tuple = _tuple; $f.f = f; $f.i = i; $f.r = r; $f.s = s; $f.size = size; $f.truth = truth; $f.$s = $s; $f.$r = $r; return $f;
-	};
-	TrimSpace = function(s) {
-		var $ptr, _r, s, $s, $r;
-		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; s = $f.s; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		_r = TrimFunc(s, unicode.IsSpace); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
-		$s = -1; return _r;
-		return _r;
-		/* */ } return; } if ($f === undefined) { $f = { $blk: TrimSpace }; } $f.$ptr = $ptr; $f._r = _r; $f.s = s; $f.$s = $s; $f.$r = $r; return $f;
-	};
-	$pkg.TrimSpace = TrimSpace;
-	TrimSuffix = function(s, suffix) {
-		var $ptr, s, suffix;
-		if (HasSuffix(s, suffix)) {
-			return s.substring(0, (s.length - suffix.length >> 0));
-		}
-		return s;
-	};
-	$pkg.TrimSuffix = TrimSuffix;
-	$init = function() {
-		$pkg.$init = function() {};
-		/* */ var $f, $c = false, $s = 0, $r; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		$r = errors.$init(); /* */ $s = 1; case 1: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
-		$r = js.$init(); /* */ $s = 2; case 2: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
-		$r = io.$init(); /* */ $s = 3; case 3: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
-		$r = unicode.$init(); /* */ $s = 4; case 4: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
-		$r = utf8.$init(); /* */ $s = 5; case 5: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
-		/* */ } return; } if ($f === undefined) { $f = { $blk: $init }; } $f.$s = $s; $f.$r = $r; return $f;
-	};
-	$pkg.$init = $init;
-	return $pkg;
-})();
-$packages["github.com/Armienn/GoLanguage/grammatics"] = (function() {
-	var $pkg = {}, $init, strings, VerbiumRepresenter, SubstantivRepresenter, AdjektivRepresenter, AdverbiumRepresenter, SimpleRepresenter, Dansk, Verbium, Substantiv, Adjektiv, Adverbium, Forholdsled, DanishSentence, Statement, Concept, ConceptInfo, WordRepresenter, ptrType, sliceType, sliceType$1, sliceType$2, sliceType$3, ptrType$1, sliceType$4, sliceType$5, sliceType$6, ptrType$2, sliceType$7, ptrType$3, ptrType$4, ptrType$5, mapType, mapType$1, mapType$2, mapType$3, mapType$4, ptrType$6, mapType$5, SubstantivDescriptorType, IsTime, GetTime, StatementFromString, SplitByBraces, GetSentences;
-	strings = $packages["strings"];
-	VerbiumRepresenter = $pkg.VerbiumRepresenter = $newType(8, $kindInterface, "grammatics.VerbiumRepresenter", true, "github.com/Armienn/GoLanguage/grammatics", true, null);
-	SubstantivRepresenter = $pkg.SubstantivRepresenter = $newType(8, $kindInterface, "grammatics.SubstantivRepresenter", true, "github.com/Armienn/GoLanguage/grammatics", true, null);
-	AdjektivRepresenter = $pkg.AdjektivRepresenter = $newType(8, $kindInterface, "grammatics.AdjektivRepresenter", true, "github.com/Armienn/GoLanguage/grammatics", true, null);
-	AdverbiumRepresenter = $pkg.AdverbiumRepresenter = $newType(8, $kindInterface, "grammatics.AdverbiumRepresenter", true, "github.com/Armienn/GoLanguage/grammatics", true, null);
-	SimpleRepresenter = $pkg.SimpleRepresenter = $newType(8, $kindInterface, "grammatics.SimpleRepresenter", true, "github.com/Armienn/GoLanguage/grammatics", true, null);
-	Dansk = $pkg.Dansk = $newType(0, $kindStruct, "grammatics.Dansk", true, "github.com/Armienn/GoLanguage/grammatics", true, function(Verber_, Substantiver_, Adjektiver_, Adverbier_, Præpositioner_, Er_, Og_) {
-		this.$val = this;
-		if (arguments.length === 0) {
-			this.Verber = false;
-			this.Substantiver = false;
-			this.Adjektiver = false;
-			this.Adverbier = false;
-			this.Præpositioner = false;
-			this.Er = $ifaceNil;
-			this.Og = $ifaceNil;
-			return;
-		}
-		this.Verber = Verber_;
-		this.Substantiver = Substantiver_;
-		this.Adjektiver = Adjektiver_;
-		this.Adverbier = Adverbier_;
-		this.Præpositioner = Præpositioner_;
-		this.Er = Er_;
-		this.Og = Og_;
-	});
-	Verbium = $pkg.Verbium = $newType(0, $kindStruct, "grammatics.Verbium", true, "github.com/Armienn/GoLanguage/grammatics", true, function(Ord_, Tid_, Adverbier_) {
-		this.$val = this;
-		if (arguments.length === 0) {
-			this.Ord = $ifaceNil;
-			this.Tid = "";
-			this.Adverbier = sliceType.nil;
-			return;
-		}
-		this.Ord = Ord_;
-		this.Tid = Tid_;
-		this.Adverbier = Adverbier_;
-	});
-	Substantiv = $pkg.Substantiv = $newType(0, $kindStruct, "grammatics.Substantiv", true, "github.com/Armienn/GoLanguage/grammatics", true, function(Ord_, Flertal_, Bestemt_, Ejefald_, Tillægsord_, Ejere_) {
-		this.$val = this;
-		if (arguments.length === 0) {
-			this.Ord = $ifaceNil;
-			this.Flertal = false;
-			this.Bestemt = false;
-			this.Ejefald = false;
-			this.Tillægsord = sliceType$3.nil;
-			this.Ejere = sliceType$1.nil;
-			return;
-		}
-		this.Ord = Ord_;
-		this.Flertal = Flertal_;
-		this.Bestemt = Bestemt_;
-		this.Ejefald = Ejefald_;
-		this.Tillægsord = Tillægsord_;
-		this.Ejere = Ejere_;
-	});
-	Adjektiv = $pkg.Adjektiv = $newType(0, $kindStruct, "grammatics.Adjektiv", true, "github.com/Armienn/GoLanguage/grammatics", true, function(Ord_, Adverbier_) {
-		this.$val = this;
-		if (arguments.length === 0) {
-			this.Ord = $ifaceNil;
-			this.Adverbier = sliceType.nil;
-			return;
-		}
-		this.Ord = Ord_;
-		this.Adverbier = Adverbier_;
-	});
-	Adverbium = $pkg.Adverbium = $newType(0, $kindStruct, "grammatics.Adverbium", true, "github.com/Armienn/GoLanguage/grammatics", true, function(Ord_, Adverbier_) {
-		this.$val = this;
-		if (arguments.length === 0) {
-			this.Ord = $ifaceNil;
-			this.Adverbier = sliceType.nil;
-			return;
-		}
-		this.Ord = Ord_;
-		this.Adverbier = Adverbier_;
-	});
-	Forholdsled = $pkg.Forholdsled = $newType(0, $kindStruct, "grammatics.Forholdsled", true, "github.com/Armienn/GoLanguage/grammatics", true, function(Forholdsord_, Ord_) {
-		this.$val = this;
-		if (arguments.length === 0) {
-			this.Forholdsord = $ifaceNil;
-			this.Ord = new Substantiv.ptr($ifaceNil, false, false, false, sliceType$3.nil, sliceType$1.nil);
-			return;
-		}
-		this.Forholdsord = Forholdsord_;
-		this.Ord = Ord_;
-	});
-	DanishSentence = $pkg.DanishSentence = $newType(0, $kindStruct, "grammatics.DanishSentence", true, "github.com/Armienn/GoLanguage/grammatics", true, function(core_, Language_, Verb_, Subject_, Object_, Other_) {
-		this.$val = this;
-		if (arguments.length === 0) {
-			this.core = false;
-			this.Language = ptrType.nil;
-			this.Verb = new Verbium.ptr($ifaceNil, "", sliceType.nil);
-			this.Subject = sliceType$1.nil;
-			this.Object = sliceType$1.nil;
-			this.Other = sliceType$2.nil;
-			return;
-		}
-		this.core = core_;
-		this.Language = Language_;
-		this.Verb = Verb_;
-		this.Subject = Subject_;
-		this.Object = Object_;
-		this.Other = Other_;
-	});
-	Statement = $pkg.Statement = $newType(0, $kindStruct, "grammatics.Statement", true, "github.com/Armienn/GoLanguage/grammatics", true, function(SimpleConcept_, CompoundConcept_, Relation_, Descriptors_) {
-		this.$val = this;
-		if (arguments.length === 0) {
-			this.SimpleConcept = "";
-			this.CompoundConcept = ptrType$1.nil;
-			this.Relation = "";
-			this.Descriptors = sliceType$4.nil;
-			return;
-		}
-		this.SimpleConcept = SimpleConcept_;
-		this.CompoundConcept = CompoundConcept_;
-		this.Relation = Relation_;
-		this.Descriptors = Descriptors_;
-	});
-	Concept = $pkg.Concept = $newType(8, $kindString, "grammatics.Concept", true, "github.com/Armienn/GoLanguage/grammatics", true, null);
-	ConceptInfo = $pkg.ConceptInfo = $newType(0, $kindStruct, "grammatics.ConceptInfo", true, "github.com/Armienn/GoLanguage/grammatics", true, function(Description_, ValidArguments_) {
-		this.$val = this;
-		if (arguments.length === 0) {
-			this.Description = "";
-			this.ValidArguments = sliceType$6.nil;
-			return;
-		}
-		this.Description = Description_;
-		this.ValidArguments = ValidArguments_;
-	});
-	WordRepresenter = $pkg.WordRepresenter = $newType(8, $kindInterface, "grammatics.WordRepresenter", true, "github.com/Armienn/GoLanguage/grammatics", true, null);
-	ptrType = $ptrType(Dansk);
-	sliceType = $sliceType(Adverbium);
-	sliceType$1 = $sliceType(Substantiv);
-	sliceType$2 = $sliceType(Forholdsled);
-	sliceType$3 = $sliceType(Adjektiv);
-	ptrType$1 = $ptrType(Statement);
-	sliceType$4 = $sliceType(ptrType$1);
-	sliceType$5 = $sliceType($String);
-	sliceType$6 = $sliceType(Concept);
-	ptrType$2 = $ptrType(DanishSentence);
-	sliceType$7 = $sliceType(WordRepresenter);
-	ptrType$3 = $ptrType(Substantiv);
-	ptrType$4 = $ptrType(Adjektiv);
-	ptrType$5 = $ptrType(Adverbium);
-	mapType = $mapType(Concept, VerbiumRepresenter);
-	mapType$1 = $mapType(Concept, SubstantivRepresenter);
-	mapType$2 = $mapType(Concept, AdjektivRepresenter);
-	mapType$3 = $mapType(Concept, AdverbiumRepresenter);
-	mapType$4 = $mapType(Concept, SimpleRepresenter);
-	ptrType$6 = $ptrType(ConceptInfo);
-	mapType$5 = $mapType(Concept, ptrType$6);
-	Dansk.ptr.prototype.Translate = function(sentence) {
-		var $ptr, _r, language, parsedSentence, sentence, $s, $r;
-		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; language = $f.language; parsedSentence = $f.parsedSentence; sentence = $f.sentence; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		language = this;
-		parsedSentence = $clone(language.ParseSentence(sentence), DanishSentence);
-		_r = parsedSentence.GetResult(); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
-		$s = -1; return _r;
-		return _r;
-		/* */ } return; } if ($f === undefined) { $f = { $blk: Dansk.ptr.prototype.Translate }; } $f.$ptr = $ptr; $f._r = _r; $f.language = language; $f.parsedSentence = parsedSentence; $f.sentence = sentence; $f.$s = $s; $f.$r = $r; return $f;
-	};
-	Dansk.prototype.Translate = function(sentence) { return this.$val.Translate(sentence); };
-	Dansk.ptr.prototype.ParseSentence = function(source) {
-		var $ptr, _1, _i, _ref, descriptor, language, sentence, source;
-		language = this;
-		sentence = new DanishSentence.ptr(false, ptrType.nil, new Verbium.ptr($ifaceNil, "", sliceType.nil), sliceType$1.nil, sliceType$1.nil, sliceType$2.nil);
-		sentence.Language = language;
-		sentence.Verb.Tid = "nutid";
-		_ref = source.Descriptors;
-		_i = 0;
-		while (true) {
-			if (!(_i < _ref.$length)) { break; }
-			descriptor = ((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]);
-			_1 = descriptor.Relation;
-			if (_1 === ("doer") || _1 === ("beer")) {
-				sentence.Subject = $append(sentence.Subject, language.ParseSubstantiv(descriptor));
-			} else if (_1 === ("object")) {
-				sentence.Object = $append(sentence.Object, language.ParseSubstantiv(descriptor));
-			} else if (_1 === ("at")) {
-				if (IsTime(descriptor)) {
-					sentence.Verb.Tid = GetTime(descriptor);
-				} else {
-					sentence.Other = $append(sentence.Other, language.ParseForholdsled(descriptor));
-				}
-			} else if (_1 === ("around")) {
-				if (IsTime(descriptor)) {
-					sentence.Verb.Tid = GetTime(descriptor);
-				} else {
-					sentence.Other = $append(sentence.Other, language.ParseForholdsled(descriptor));
-				}
-			} else if (_1 === ("descriptor")) {
-				sentence.Verb.Adverbier = $append(sentence.Verb.Adverbier, language.ParseAdverbium(descriptor));
-			} else if (_1 === ("and") || _1 === ("but")) {
-			} else {
-				sentence.Other = $append(sentence.Other, language.ParseForholdsled(descriptor));
-			}
-			_i++;
-		}
-		if (source.IsComplex()) {
-			sentence.Verb.Ord = language.FindVerbium(source);
-		} else {
-			sentence.Verb.Ord = language.FindVerbium(source);
-		}
-		return sentence;
-	};
-	Dansk.prototype.ParseSentence = function(source) { return this.$val.ParseSentence(source); };
-	Dansk.ptr.prototype.ParseSubstantiv = function(source) {
-		var $ptr, _1, _i, _ref, _tuple, addWords, descriptor, descriptorType, ejer, language, source, substantiv;
-		language = this;
-		substantiv = new Substantiv.ptr($ifaceNil, false, false, false, sliceType$3.nil, sliceType$1.nil);
-		if (source.IsComplex()) {
-			substantiv.Ord = language.FindSubstantiv(source);
-		} else {
-			substantiv.Ord = language.FindSubstantiv(source);
-		}
-		substantiv.Tillægsord = $makeSlice(sliceType$3, 0);
-		substantiv.Ejere = $makeSlice(sliceType$1, 0);
-		_ref = source.Descriptors;
-		_i = 0;
-		while (true) {
-			if (!(_i < _ref.$length)) { break; }
-			descriptor = ((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]);
-			_tuple = SubstantivDescriptorType(descriptor);
-			descriptorType = _tuple[0];
-			addWords = _tuple[1];
-			_1 = descriptorType;
-			if (_1 === ("definite")) {
-				substantiv.Bestemt = true;
-			} else if (_1 === ("multiple")) {
-				substantiv.Flertal = true;
-			} else if (_1 === ("owner")) {
-				ejer = $clone(language.ParseSubstantiv(descriptor), Substantiv);
-				ejer.Ejefald = true;
-				substantiv.Ejere = $append(substantiv.Ejere, ejer);
-			}
-			if (addWords) {
-				substantiv.Tillægsord = $append(substantiv.Tillægsord, language.ParseAdjektiv(descriptor));
-			}
-			_i++;
-		}
-		return substantiv;
-	};
-	Dansk.prototype.ParseSubstantiv = function(source) { return this.$val.ParseSubstantiv(source); };
-	SubstantivDescriptorType = function(source) {
-		var $ptr, _1, source;
-		if (source.Relation === "owner") {
-			return ["owner", false];
-		}
-		if (!(source.Relation === "descriptor") || source.IsComplex()) {
-			return ["other", true];
-		}
-		_1 = source.SimpleConcept;
-		if (_1 === ("definite")) {
-			return ["definite", false];
-		} else if (_1 === ("several")) {
-			return ["multiple", false];
-		} else if (_1 === ("two") || _1 === ("all")) {
-			return ["multiple", true];
-		}
-		return ["default", true];
-	};
-	$pkg.SubstantivDescriptorType = SubstantivDescriptorType;
-	Dansk.ptr.prototype.ParseAdjektiv = function(source) {
-		var $ptr, _i, _ref, adjektiv, descriptor, language, source;
-		language = this;
-		adjektiv = new Adjektiv.ptr($ifaceNil, sliceType.nil);
-		if (source.IsComplex()) {
-			adjektiv.Ord = language.FindAdjektiv(source);
-		} else {
-			adjektiv.Ord = language.FindAdjektiv(source);
-		}
-		adjektiv.Adverbier = $makeSlice(sliceType, 0);
-		_ref = source.Descriptors;
-		_i = 0;
-		while (true) {
-			if (!(_i < _ref.$length)) { break; }
-			descriptor = ((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]);
-			adjektiv.Adverbier = $append(adjektiv.Adverbier, language.ParseAdverbium(descriptor));
-			_i++;
-		}
-		return adjektiv;
-	};
-	Dansk.prototype.ParseAdjektiv = function(source) { return this.$val.ParseAdjektiv(source); };
-	Dansk.ptr.prototype.ParseAdverbium = function(source) {
-		var $ptr, _i, _ref, adverbium, descriptor, language, source;
-		language = this;
-		adverbium = new Adverbium.ptr($ifaceNil, sliceType.nil);
-		if (source.IsComplex()) {
-			adverbium.Ord = language.FindAdverbium(source);
-		} else {
-			adverbium.Ord = language.FindAdverbium(source);
-		}
-		adverbium.Adverbier = $makeSlice(sliceType, 0);
-		_ref = source.Descriptors;
-		_i = 0;
-		while (true) {
-			if (!(_i < _ref.$length)) { break; }
-			descriptor = ((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]);
-			adverbium.Adverbier = $append(adverbium.Adverbier, language.ParseAdverbium(descriptor));
-			_i++;
-		}
-		return adverbium;
-	};
-	Dansk.prototype.ParseAdverbium = function(source) { return this.$val.ParseAdverbium(source); };
-	Dansk.ptr.prototype.ParseForholdsled = function(source) {
-		var $ptr, language, led, source;
-		language = this;
-		led = new Forholdsled.ptr($ifaceNil, new Substantiv.ptr($ifaceNil, false, false, false, sliceType$3.nil, sliceType$1.nil));
-		led.Forholdsord = language.FindSimple(source);
-		Substantiv.copy(led.Ord, language.ParseSubstantiv(source));
-		return led;
-	};
-	Dansk.prototype.ParseForholdsled = function(source) { return this.$val.ParseForholdsled(source); };
-	Dansk.ptr.prototype.FindVerbium = function(source) {
-		var $ptr, _entry, _entry$1, _tuple, language, ok, source, word;
-		language = this;
-		_tuple = (_entry = language.Verber[Concept.keyFor(source.SimpleConcept)], _entry !== undefined ? [_entry.v, true] : [$ifaceNil, false]);
-		word = _tuple[0];
-		ok = _tuple[1];
-		if (!ok) {
-			return (_entry$1 = language.Verber[Concept.keyFor("!")], _entry$1 !== undefined ? _entry$1.v : $ifaceNil);
-		}
-		return word;
-	};
-	Dansk.prototype.FindVerbium = function(source) { return this.$val.FindVerbium(source); };
-	Dansk.ptr.prototype.FindSubstantiv = function(source) {
-		var $ptr, _entry, _entry$1, _tuple, language, ok, source, word;
-		language = this;
-		_tuple = (_entry = language.Substantiver[Concept.keyFor(source.SimpleConcept)], _entry !== undefined ? [_entry.v, true] : [$ifaceNil, false]);
-		word = _tuple[0];
-		ok = _tuple[1];
-		if (!ok) {
-			return (_entry$1 = language.Substantiver[Concept.keyFor("!")], _entry$1 !== undefined ? _entry$1.v : $ifaceNil);
-		}
-		return word;
-	};
-	Dansk.prototype.FindSubstantiv = function(source) { return this.$val.FindSubstantiv(source); };
-	Dansk.ptr.prototype.FindAdjektiv = function(source) {
-		var $ptr, _entry, _entry$1, _tuple, language, ok, source, word;
-		language = this;
-		_tuple = (_entry = language.Adjektiver[Concept.keyFor(source.SimpleConcept)], _entry !== undefined ? [_entry.v, true] : [$ifaceNil, false]);
-		word = _tuple[0];
-		ok = _tuple[1];
-		if (!ok) {
-			return (_entry$1 = language.Adjektiver[Concept.keyFor("!")], _entry$1 !== undefined ? _entry$1.v : $ifaceNil);
-		}
-		return word;
-	};
-	Dansk.prototype.FindAdjektiv = function(source) { return this.$val.FindAdjektiv(source); };
-	Dansk.ptr.prototype.FindAdverbium = function(source) {
-		var $ptr, _entry, _entry$1, _tuple, language, ok, source, word;
-		language = this;
-		_tuple = (_entry = language.Adverbier[Concept.keyFor(source.SimpleConcept)], _entry !== undefined ? [_entry.v, true] : [$ifaceNil, false]);
-		word = _tuple[0];
-		ok = _tuple[1];
-		if (!ok) {
-			return (_entry$1 = language.Adverbier[Concept.keyFor("!")], _entry$1 !== undefined ? _entry$1.v : $ifaceNil);
-		}
-		return word;
-	};
-	Dansk.prototype.FindAdverbium = function(source) { return this.$val.FindAdverbium(source); };
-	Dansk.ptr.prototype.FindSimple = function(source) {
-		var $ptr, _entry, _entry$1, _tuple, language, ok, source, word;
-		language = this;
-		_tuple = (_entry = language.Præpositioner[Concept.keyFor(source.SimpleConcept)], _entry !== undefined ? [_entry.v, true] : [$ifaceNil, false]);
-		word = _tuple[0];
-		ok = _tuple[1];
-		if (!ok) {
-			return (_entry$1 = language.Præpositioner[Concept.keyFor("!")], _entry$1 !== undefined ? _entry$1.v : $ifaceNil);
-		}
-		return word;
-	};
-	Dansk.prototype.FindSimple = function(source) { return this.$val.FindSimple(source); };
-	IsTime = function(source) {
-		var $ptr, _1, source;
-		if (source.IsComplex()) {
-			return false;
-		}
-		_1 = source.SimpleConcept;
-		if (_1 === ("after") || _1 === ("now") || _1 === ("before")) {
-			return true;
-		}
-		return false;
-	};
-	$pkg.IsTime = IsTime;
-	GetTime = function(source) {
-		var $ptr, _1, source;
-		_1 = source.SimpleConcept;
-		if (_1 === ("before")) {
-			return "datid";
-		}
-		return "nutid";
-	};
-	$pkg.GetTime = GetTime;
-	DanishSentence.ptr.prototype.GetResult = function() {
-		var $ptr, _r, sentence, $s, $r;
-		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; sentence = $f.sentence; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		sentence = this;
-		_r = sentence.Verb.Ord.Representation(sentence); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
-		$s = -1; return _r;
-		return _r;
-		/* */ } return; } if ($f === undefined) { $f = { $blk: DanishSentence.ptr.prototype.GetResult }; } $f.$ptr = $ptr; $f._r = _r; $f.sentence = sentence; $f.$s = $s; $f.$r = $r; return $f;
-	};
-	DanishSentence.prototype.GetResult = function() { return this.$val.GetResult(); };
-	ConceptInfo.ptr.prototype.HasArgument = function(argument) {
-		var $ptr, _1, _i, _ref, argument, concept, info;
-		info = this;
-		_1 = argument;
-		if (_1 === ("beer")) {
-			return true;
-		}
-		_ref = info.ValidArguments;
-		_i = 0;
-		while (true) {
-			if (!(_i < _ref.$length)) { break; }
-			concept = ((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]);
-			if (concept === argument) {
-				return true;
-			}
-			_i++;
-		}
-		return false;
-	};
-	ConceptInfo.prototype.HasArgument = function(argument) { return this.$val.HasArgument(argument); };
-	StatementFromString = function(source) {
-		var $ptr, _r, _r$1, _r$2, group, i, mub, parts, source, start, x, x$1, x$2, $s, $r;
-		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; _r$1 = $f._r$1; _r$2 = $f._r$2; group = $f.group; i = $f.i; mub = $f.mub; parts = $f.parts; source = $f.source; start = $f.start; x = $f.x; x$1 = $f.x$1; x$2 = $f.x$2; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		group = new Statement.ptr("", ptrType$1.nil, "", sliceType$4.nil);
-		_r = strings.TrimSpace(source); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
-		source = _r;
-		if (strings.HasPrefix(source, "[")) {
-			source = (x = SplitByBraces(source, 91, 93), (0 >= x.$length ? $throwRuntimeError("index out of range") : x.$array[x.$offset + 0]));
-		}
-		parts = SplitByBraces(source, 91, 93);
-		/* */ if (strings.HasSuffix((0 >= parts.$length ? $throwRuntimeError("index out of range") : parts.$array[parts.$offset + 0]), ":")) { $s = 2; continue; }
-		/* */ $s = 3; continue;
-		/* if (strings.HasSuffix((0 >= parts.$length ? $throwRuntimeError("index out of range") : parts.$array[parts.$offset + 0]), ":")) { */ case 2:
-			group.Relation = strings.TrimSuffix((0 >= parts.$length ? $throwRuntimeError("index out of range") : parts.$array[parts.$offset + 0]), ":");
-			_r$1 = StatementFromString((1 >= parts.$length ? $throwRuntimeError("index out of range") : parts.$array[parts.$offset + 1])); /* */ $s = 5; case 5: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
-			group.CompoundConcept = _r$1;
-			$s = 4; continue;
-		/* } else { */ case 3:
-			mub = strings.Split((0 >= parts.$length ? $throwRuntimeError("index out of range") : parts.$array[parts.$offset + 0]), ":");
-			if (mub.$length === 1) {
-				group.Relation = "descriptor";
-				group.SimpleConcept = (0 >= mub.$length ? $throwRuntimeError("index out of range") : mub.$array[mub.$offset + 0]);
-			} else {
-				group.Relation = (0 >= mub.$length ? $throwRuntimeError("index out of range") : mub.$array[mub.$offset + 0]);
-				group.SimpleConcept = (1 >= mub.$length ? $throwRuntimeError("index out of range") : mub.$array[mub.$offset + 1]);
-			}
-		/* } */ case 4:
-		start = 1;
-		if (group.IsComplex()) {
-			start = 2;
-		}
-		group.Descriptors = $makeSlice(sliceType$4, (parts.$length - start >> 0));
-		i = 0;
-		/* while (true) { */ case 6:
-			/* if (!(i < (parts.$length - start >> 0))) { break; } */ if(!(i < (parts.$length - start >> 0))) { $s = 7; continue; }
-			_r$2 = StatementFromString((x$1 = i + start >> 0, ((x$1 < 0 || x$1 >= parts.$length) ? $throwRuntimeError("index out of range") : parts.$array[parts.$offset + x$1]))); /* */ $s = 8; case 8: if($c) { $c = false; _r$2 = _r$2.$blk(); } if (_r$2 && _r$2.$blk !== undefined) { break s; }
-			(x$2 = group.Descriptors, ((i < 0 || i >= x$2.$length) ? $throwRuntimeError("index out of range") : x$2.$array[x$2.$offset + i] = _r$2));
-			i = i + (1) >> 0;
-		/* } */ $s = 6; continue; case 7:
-		$s = -1; return group;
-		return group;
-		/* */ } return; } if ($f === undefined) { $f = { $blk: StatementFromString }; } $f.$ptr = $ptr; $f._r = _r; $f._r$1 = _r$1; $f._r$2 = _r$2; $f.group = group; $f.i = i; $f.mub = mub; $f.parts = parts; $f.source = source; $f.start = start; $f.x = x; $f.x$1 = x$1; $f.x$2 = x$2; $f.$s = $s; $f.$r = $r; return $f;
-	};
-	$pkg.StatementFromString = StatementFromString;
-	SplitByBraces = function(source, start, end) {
-		var $ptr, _i, _ref, _rune, c, end, i, level, source, splits, start, startIndex;
-		splits = $makeSlice(sliceType$5, 0);
-		startIndex = 0;
-		level = 0;
-		_ref = source;
-		_i = 0;
-		while (true) {
-			if (!(_i < _ref.length)) { break; }
-			_rune = $decodeRune(_ref, _i);
-			i = _i;
-			c = _rune[0];
-			if (c === start) {
-				if (level === 0) {
-					if (!((i === startIndex))) {
-						splits = $append(splits, source.substring(startIndex, i));
-					}
-					startIndex = i + 1 >> 0;
-				}
-				level = level + (1) >> 0;
-			} else if (c === end) {
-				level = level - (1) >> 0;
-				if (level === 0) {
-					splits = $append(splits, source.substring(startIndex, i));
-					startIndex = i + 1 >> 0;
-				}
-			}
-			_i += _rune[1];
-		}
-		if (!((startIndex === source.length))) {
-			splits = $append(splits, source.substring(startIndex));
-		}
-		return splits;
-	};
-	$pkg.SplitByBraces = SplitByBraces;
-	Statement.ptr.prototype.String = function() {
-		var $ptr, _i, _ref, core, descriptor, group;
-		group = this;
-		core = "";
-		if (group.IsComplex()) {
-			core = group.CompoundConcept.String();
-		} else {
-			core = group.SimpleConcept;
-		}
-		_ref = group.Descriptors;
-		_i = 0;
-		while (true) {
-			if (!(_i < _ref.$length)) { break; }
-			descriptor = ((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]);
-			core = core + (descriptor.String());
-			_i++;
-		}
-		return "[" + group.Relation + ":" + core + "]";
-	};
-	Statement.prototype.String = function() { return this.$val.String(); };
-	Statement.ptr.prototype.AddDescriptor = function(descriptor) {
-		var $ptr, descriptor, group;
-		group = this;
-		group.Descriptors = $append(group.Descriptors, descriptor);
-	};
-	Statement.prototype.AddDescriptor = function(descriptor) { return this.$val.AddDescriptor(descriptor); };
-	Statement.ptr.prototype.IsComplex = function() {
-		var $ptr, group;
-		group = this;
-		return !(group.CompoundConcept === ptrType$1.nil);
-	};
-	Statement.prototype.IsComplex = function() { return this.$val.IsComplex(); };
-	Statement.ptr.prototype.GetDescriptors = function(relations) {
-		var $ptr, _i, _ref, descriptor, descriptors, group, relations;
-		group = this;
-		descriptors = $makeSlice(sliceType$4, 0);
-		_ref = group.Descriptors;
-		_i = 0;
-		while (true) {
-			if (!(_i < _ref.$length)) { break; }
-			descriptor = ((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]);
-			if (descriptor.HasRelation(relations)) {
-				descriptors = $append(descriptors, descriptor);
-			}
-			_i++;
-		}
-		return descriptors;
-	};
-	Statement.prototype.GetDescriptors = function(relations) { return this.$val.GetDescriptors(relations); };
-	Statement.ptr.prototype.GetDescriptorsOf = function(descriptor, relations) {
-		var $ptr, _i, _ref, descr, descriptor, descriptors, group, relations;
-		group = this;
-		descriptors = $makeSlice(sliceType$4, 0);
-		_ref = group.Descriptors;
-		_i = 0;
-		while (true) {
-			if (!(_i < _ref.$length)) { break; }
-			descr = ((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]);
-			if (descr.SimpleConcept === descriptor && descr.HasRelation(relations)) {
-				descriptors = $append(descriptors, descr);
-			}
-			_i++;
-		}
-		return descriptors;
-	};
-	Statement.prototype.GetDescriptorsOf = function(descriptor, relations) { return this.$val.GetDescriptorsOf(descriptor, relations); };
-	Statement.ptr.prototype.HasRelation = function(relations) {
-		var $ptr, _i, _ref, group, relation, relations;
-		group = this;
-		_ref = relations;
-		_i = 0;
-		while (true) {
-			if (!(_i < _ref.$length)) { break; }
-			relation = ((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]);
-			if (group.Relation === relation) {
-				return true;
-			}
-			_i++;
-		}
-		return false;
-	};
-	Statement.prototype.HasRelation = function(relations) { return this.$val.HasRelation(relations); };
-	GetSentences = function() {
-		var $ptr, _r, _r$1, _r$10, _r$11, _r$12, _r$13, _r$14, _r$15, _r$16, _r$17, _r$18, _r$19, _r$2, _r$20, _r$21, _r$22, _r$23, _r$24, _r$25, _r$26, _r$3, _r$4, _r$5, _r$6, _r$7, _r$8, _r$9, $s, $r;
-		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; _r$1 = $f._r$1; _r$10 = $f._r$10; _r$11 = $f._r$11; _r$12 = $f._r$12; _r$13 = $f._r$13; _r$14 = $f._r$14; _r$15 = $f._r$15; _r$16 = $f._r$16; _r$17 = $f._r$17; _r$18 = $f._r$18; _r$19 = $f._r$19; _r$2 = $f._r$2; _r$20 = $f._r$20; _r$21 = $f._r$21; _r$22 = $f._r$22; _r$23 = $f._r$23; _r$24 = $f._r$24; _r$25 = $f._r$25; _r$26 = $f._r$26; _r$3 = $f._r$3; _r$4 = $f._r$4; _r$5 = $f._r$5; _r$6 = $f._r$6; _r$7 = $f._r$7; _r$8 = $f._r$8; _r$9 = $f._r$9; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		_r = StatementFromString("[:shine[doer:sun][at:now]]"); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
-		_r$1 = StatementFromString("[:shine[doer:sun][at:before]]"); /* */ $s = 2; case 2: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
-		_r$2 = StatementFromString("[:shine[doer:sun[definite]][at:now]]"); /* */ $s = 3; case 3: if($c) { $c = false; _r$2 = _r$2.$blk(); } if (_r$2 && _r$2.$blk !== undefined) { break s; }
-		_r$3 = StatementFromString("[:shine[doer:sun[definite]][at:before]]"); /* */ $s = 4; case 4: if($c) { $c = false; _r$3 = _r$3.$blk(); } if (_r$3 && _r$3.$blk !== undefined) { break s; }
-		_r$4 = StatementFromString("[:shine[doer:sun[several]][at:now]]"); /* */ $s = 5; case 5: if($c) { $c = false; _r$4 = _r$4.$blk(); } if (_r$4 && _r$4.$blk !== undefined) { break s; }
-		_r$5 = StatementFromString("[:shine[doer:sun[several]][at:before]]"); /* */ $s = 6; case 6: if($c) { $c = false; _r$5 = _r$5.$blk(); } if (_r$5 && _r$5.$blk !== undefined) { break s; }
-		_r$6 = StatementFromString("[:shine[doer:sun[definite][several]][at:now]]"); /* */ $s = 7; case 7: if($c) { $c = false; _r$6 = _r$6.$blk(); } if (_r$6 && _r$6.$blk !== undefined) { break s; }
-		_r$7 = StatementFromString("[:shine[doer:sun[definite][several]][at:before]]"); /* */ $s = 8; case 8: if($c) { $c = false; _r$7 = _r$7.$blk(); } if (_r$7 && _r$7.$blk !== undefined) { break s; }
-		_r$8 = StatementFromString("[:shine[doer:sun]"); /* */ $s = 9; case 9: if($c) { $c = false; _r$8 = _r$8.$blk(); } if (_r$8 && _r$8.$blk !== undefined) { break s; }
-		_r$9 = StatementFromString("[:shine[doer:sun][around:now]"); /* */ $s = 10; case 10: if($c) { $c = false; _r$9 = _r$9.$blk(); } if (_r$9 && _r$9.$blk !== undefined) { break s; }
-		_r$10 = StatementFromString("[:shine[doer:sun][at:before]]"); /* */ $s = 11; case 11: if($c) { $c = false; _r$10 = _r$10.$blk(); } if (_r$10 && _r$10.$blk !== undefined) { break s; }
-		_r$11 = StatementFromString("[:shine[doer:sun][at:after]]"); /* */ $s = 12; case 12: if($c) { $c = false; _r$11 = _r$11.$blk(); } if (_r$11 && _r$11.$blk !== undefined) { break s; }
-		_r$12 = StatementFromString("[:shine[doer:sun][around:before]]"); /* */ $s = 13; case 13: if($c) { $c = false; _r$12 = _r$12.$blk(); } if (_r$12 && _r$12.$blk !== undefined) { break s; }
-		_r$13 = StatementFromString("[:shine[doer:sun][around:now][descriptor:again]]"); /* */ $s = 14; case 14: if($c) { $c = false; _r$13 = _r$13.$blk(); } if (_r$13 && _r$13.$blk !== undefined) { break s; }
-		_r$14 = StatementFromString("[:shine[doer:sun][at:day[after:now][descriptor:definite]]"); /* */ $s = 15; case 15: if($c) { $c = false; _r$14 = _r$14.$blk(); } if (_r$14 && _r$14.$blk !== undefined) { break s; }
-		_r$15 = StatementFromString("[:shine[doer:sun][at:now][descriptor:bright]]"); /* */ $s = 16; case 16: if($c) { $c = false; _r$15 = _r$15.$blk(); } if (_r$15 && _r$15.$blk !== undefined) { break s; }
-		_r$16 = StatementFromString("[:shine[doer:sun[descriptor:bright]][at:now]]"); /* */ $s = 17; case 17: if($c) { $c = false; _r$16 = _r$16.$blk(); } if (_r$16 && _r$16.$blk !== undefined) { break s; }
-		_r$17 = StatementFromString("[:rise[doer:sun][around:now]]"); /* */ $s = 18; case 18: if($c) { $c = false; _r$17 = _r$17.$blk(); } if (_r$17 && _r$17.$blk !== undefined) { break s; }
-		_r$18 = StatementFromString("[:shout[doer:person[descriptor:all]][at:before]]"); /* */ $s = 19; case 19: if($c) { $c = false; _r$18 = _r$18.$blk(); } if (_r$18 && _r$18.$blk !== undefined) { break s; }
-		_r$19 = StatementFromString("[:shout[doer:person[descriptor:several]][at:before]]"); /* */ $s = 20; case 20: if($c) { $c = false; _r$19 = _r$19.$blk(); } if (_r$19 && _r$19.$blk !== undefined) { break s; }
-		_r$20 = StatementFromString("[:shout[doer:person[descriptor:many]][at:before][descriptor:two]]"); /* */ $s = 21; case 21: if($c) { $c = false; _r$20 = _r$20.$blk(); } if (_r$20 && _r$20.$blk !== undefined) { break s; }
-		_r$21 = StatementFromString("[:shout[doer:person[descriptor:happy]][descriptor:often]]"); /* */ $s = 22; case 22: if($c) { $c = false; _r$21 = _r$21.$blk(); } if (_r$21 && _r$21.$blk !== undefined) { break s; }
-		_r$22 = StatementFromString("[:shout[doer:person[descriptor:happy][descriptor:often]]]"); /* */ $s = 23; case 23: if($c) { $c = false; _r$22 = _r$22.$blk(); } if (_r$22 && _r$22.$blk !== undefined) { break s; }
-		_r$23 = StatementFromString("[:jump[doer:kitten[descriptor:definite]][at:before][descriptor:up]]"); /* */ $s = 24; case 24: if($c) { $c = false; _r$23 = _r$23.$blk(); } if (_r$23 && _r$23.$blk !== undefined) { break s; }
-		_r$24 = StatementFromString("[:jump[doer:kitten[descriptor:definite]][at:before][onto:table]]"); /* */ $s = 25; case 25: if($c) { $c = false; _r$24 = _r$24.$blk(); } if (_r$24 && _r$24.$blk !== undefined) { break s; }
-		_r$25 = StatementFromString("[:walk[doer:kitten[descriptor:definite][descriptor:small][owner:me]][at:before][to:away]]"); /* */ $s = 26; case 26: if($c) { $c = false; _r$25 = _r$25.$blk(); } if (_r$25 && _r$25.$blk !== undefined) { break s; }
-		_r$26 = StatementFromString("[:rain[around:now]]"); /* */ $s = 27; case 27: if($c) { $c = false; _r$26 = _r$26.$blk(); } if (_r$26 && _r$26.$blk !== undefined) { break s; }
-		$s = -1; return new sliceType$4([_r, _r$1, _r$2, _r$3, _r$4, _r$5, _r$6, _r$7, _r$8, _r$9, _r$10, _r$11, _r$12, _r$13, _r$14, _r$15, _r$16, _r$17, _r$18, _r$19, _r$20, _r$21, _r$22, _r$23, _r$24, _r$25, _r$26]);
-		return new sliceType$4([_r, _r$1, _r$2, _r$3, _r$4, _r$5, _r$6, _r$7, _r$8, _r$9, _r$10, _r$11, _r$12, _r$13, _r$14, _r$15, _r$16, _r$17, _r$18, _r$19, _r$20, _r$21, _r$22, _r$23, _r$24, _r$25, _r$26]);
-		/* */ } return; } if ($f === undefined) { $f = { $blk: GetSentences }; } $f.$ptr = $ptr; $f._r = _r; $f._r$1 = _r$1; $f._r$10 = _r$10; $f._r$11 = _r$11; $f._r$12 = _r$12; $f._r$13 = _r$13; $f._r$14 = _r$14; $f._r$15 = _r$15; $f._r$16 = _r$16; $f._r$17 = _r$17; $f._r$18 = _r$18; $f._r$19 = _r$19; $f._r$2 = _r$2; $f._r$20 = _r$20; $f._r$21 = _r$21; $f._r$22 = _r$22; $f._r$23 = _r$23; $f._r$24 = _r$24; $f._r$25 = _r$25; $f._r$26 = _r$26; $f._r$3 = _r$3; $f._r$4 = _r$4; $f._r$5 = _r$5; $f._r$6 = _r$6; $f._r$7 = _r$7; $f._r$8 = _r$8; $f._r$9 = _r$9; $f.$s = $s; $f.$r = $r; return $f;
-	};
-	$pkg.GetSentences = GetSentences;
-	ptrType.methods = [{prop: "Translate", name: "Translate", pkg: "", typ: $funcType([ptrType$1], [sliceType$7], false)}, {prop: "ParseSentence", name: "ParseSentence", pkg: "", typ: $funcType([ptrType$1], [DanishSentence], false)}, {prop: "ParseSubstantiv", name: "ParseSubstantiv", pkg: "", typ: $funcType([ptrType$1], [Substantiv], false)}, {prop: "ParseAdjektiv", name: "ParseAdjektiv", pkg: "", typ: $funcType([ptrType$1], [Adjektiv], false)}, {prop: "ParseAdverbium", name: "ParseAdverbium", pkg: "", typ: $funcType([ptrType$1], [Adverbium], false)}, {prop: "ParseForholdsled", name: "ParseForholdsled", pkg: "", typ: $funcType([ptrType$1], [Forholdsled], false)}, {prop: "FindVerbium", name: "FindVerbium", pkg: "", typ: $funcType([ptrType$1], [VerbiumRepresenter], false)}, {prop: "FindSubstantiv", name: "FindSubstantiv", pkg: "", typ: $funcType([ptrType$1], [SubstantivRepresenter], false)}, {prop: "FindAdjektiv", name: "FindAdjektiv", pkg: "", typ: $funcType([ptrType$1], [AdjektivRepresenter], false)}, {prop: "FindAdverbium", name: "FindAdverbium", pkg: "", typ: $funcType([ptrType$1], [AdverbiumRepresenter], false)}, {prop: "FindSimple", name: "FindSimple", pkg: "", typ: $funcType([ptrType$1], [SimpleRepresenter], false)}];
-	ptrType$2.methods = [{prop: "GetResult", name: "GetResult", pkg: "", typ: $funcType([], [sliceType$7], false)}];
-	ptrType$1.methods = [{prop: "String", name: "String", pkg: "", typ: $funcType([], [$String], false)}, {prop: "AddDescriptor", name: "AddDescriptor", pkg: "", typ: $funcType([ptrType$1], [], false)}, {prop: "IsComplex", name: "IsComplex", pkg: "", typ: $funcType([], [$Bool], false)}, {prop: "GetDescriptors", name: "GetDescriptors", pkg: "", typ: $funcType([sliceType$6], [sliceType$4], true)}, {prop: "GetDescriptorsOf", name: "GetDescriptorsOf", pkg: "", typ: $funcType([Concept, sliceType$6], [sliceType$4], true)}, {prop: "HasRelation", name: "HasRelation", pkg: "", typ: $funcType([sliceType$6], [$Bool], true)}];
-	ptrType$6.methods = [{prop: "HasArgument", name: "HasArgument", pkg: "", typ: $funcType([Concept], [$Bool], false)}];
-	VerbiumRepresenter.init([{prop: "Representation", name: "Representation", pkg: "", typ: $funcType([ptrType$2], [sliceType$7], false)}]);
-	SubstantivRepresenter.init([{prop: "Representation", name: "Representation", pkg: "", typ: $funcType([ptrType$3], [sliceType$7], false)}]);
-	AdjektivRepresenter.init([{prop: "Representation", name: "Representation", pkg: "", typ: $funcType([ptrType$4], [sliceType$7], false)}]);
-	AdverbiumRepresenter.init([{prop: "Representation", name: "Representation", pkg: "", typ: $funcType([ptrType$5], [sliceType$7], false)}]);
-	SimpleRepresenter.init([{prop: "Representation", name: "Representation", pkg: "", typ: $funcType([], [sliceType$7], false)}]);
-	Dansk.init("", [{prop: "Verber", name: "Verber", exported: true, typ: mapType, tag: ""}, {prop: "Substantiver", name: "Substantiver", exported: true, typ: mapType$1, tag: ""}, {prop: "Adjektiver", name: "Adjektiver", exported: true, typ: mapType$2, tag: ""}, {prop: "Adverbier", name: "Adverbier", exported: true, typ: mapType$3, tag: ""}, {prop: "Præpositioner", name: "Præpositioner", exported: true, typ: mapType$4, tag: ""}, {prop: "Er", name: "Er", exported: true, typ: VerbiumRepresenter, tag: ""}, {prop: "Og", name: "Og", exported: true, typ: SimpleRepresenter, tag: ""}]);
-	Verbium.init("", [{prop: "Ord", name: "Ord", exported: true, typ: VerbiumRepresenter, tag: ""}, {prop: "Tid", name: "Tid", exported: true, typ: $String, tag: ""}, {prop: "Adverbier", name: "Adverbier", exported: true, typ: sliceType, tag: ""}]);
-	Substantiv.init("", [{prop: "Ord", name: "Ord", exported: true, typ: SubstantivRepresenter, tag: ""}, {prop: "Flertal", name: "Flertal", exported: true, typ: $Bool, tag: ""}, {prop: "Bestemt", name: "Bestemt", exported: true, typ: $Bool, tag: ""}, {prop: "Ejefald", name: "Ejefald", exported: true, typ: $Bool, tag: ""}, {prop: "Tillægsord", name: "Tillægsord", exported: true, typ: sliceType$3, tag: ""}, {prop: "Ejere", name: "Ejere", exported: true, typ: sliceType$1, tag: ""}]);
-	Adjektiv.init("", [{prop: "Ord", name: "Ord", exported: true, typ: AdjektivRepresenter, tag: ""}, {prop: "Adverbier", name: "Adverbier", exported: true, typ: sliceType, tag: ""}]);
-	Adverbium.init("", [{prop: "Ord", name: "Ord", exported: true, typ: AdverbiumRepresenter, tag: ""}, {prop: "Adverbier", name: "Adverbier", exported: true, typ: sliceType, tag: ""}]);
-	Forholdsled.init("", [{prop: "Forholdsord", name: "Forholdsord", exported: true, typ: SimpleRepresenter, tag: ""}, {prop: "Ord", name: "Ord", exported: true, typ: Substantiv, tag: ""}]);
-	DanishSentence.init("github.com/Armienn/GoLanguage/grammatics", [{prop: "core", name: "core", exported: false, typ: mapType$5, tag: ""}, {prop: "Language", name: "Language", exported: true, typ: ptrType, tag: ""}, {prop: "Verb", name: "Verb", exported: true, typ: Verbium, tag: ""}, {prop: "Subject", name: "Subject", exported: true, typ: sliceType$1, tag: ""}, {prop: "Object", name: "Object", exported: true, typ: sliceType$1, tag: ""}, {prop: "Other", name: "Other", exported: true, typ: sliceType$2, tag: ""}]);
-	Statement.init("", [{prop: "SimpleConcept", name: "SimpleConcept", exported: true, typ: Concept, tag: ""}, {prop: "CompoundConcept", name: "CompoundConcept", exported: true, typ: ptrType$1, tag: ""}, {prop: "Relation", name: "Relation", exported: true, typ: Concept, tag: ""}, {prop: "Descriptors", name: "Descriptors", exported: true, typ: sliceType$4, tag: ""}]);
-	ConceptInfo.init("", [{prop: "Description", name: "Description", exported: true, typ: $String, tag: ""}, {prop: "ValidArguments", name: "ValidArguments", exported: true, typ: sliceType$6, tag: ""}]);
-	WordRepresenter.init([{prop: "Representation", name: "Representation", pkg: "", typ: $funcType([], [$emptyInterface], false)}]);
-	$init = function() {
-		$pkg.$init = function() {};
-		/* */ var $f, $c = false, $s = 0, $r; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		$r = strings.$init(); /* */ $s = 1; case 1: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
-		/* */ } return; } if ($f === undefined) { $f = { $blk: $init }; } $f.$s = $s; $f.$r = $r; return $f;
-	};
-	$pkg.$init = $init;
-	return $pkg;
-})();
-$packages["github.com/Armienn/GoLanguage/language"] = (function() {
-	var $pkg = {}, $init, grammatics, WordString, VerbiumWord, SubstantivWord, AdjektivWord, AdverbiumWord, SimpleWord, sliceType, ptrType, mapType, ptrType$1, ptrType$2, ptrType$3, NewVerbiumWord, NewSubstantivWord, NewAdjektivWord, NewAdverbiumWord, NewSimpleWord, GetDanishLanguage;
-	grammatics = $packages["github.com/Armienn/GoLanguage/grammatics"];
-	WordString = $pkg.WordString = $newType(0, $kindStruct, "language.WordString", true, "github.com/Armienn/GoLanguage/language", true, function(Word_) {
-		this.$val = this;
-		if (arguments.length === 0) {
-			this.Word = "";
-			return;
-		}
-		this.Word = Word_;
-	});
-	VerbiumWord = $pkg.VerbiumWord = $newType(0, $kindStruct, "language.VerbiumWord", true, "github.com/Armienn/GoLanguage/language", true, function(Forms_) {
-		this.$val = this;
-		if (arguments.length === 0) {
-			this.Forms = false;
-			return;
-		}
-		this.Forms = Forms_;
-	});
-	SubstantivWord = $pkg.SubstantivWord = $newType(0, $kindStruct, "language.SubstantivWord", true, "github.com/Armienn/GoLanguage/language", true, function(Forms_) {
-		this.$val = this;
-		if (arguments.length === 0) {
-			this.Forms = false;
-			return;
-		}
-		this.Forms = Forms_;
-	});
-	AdjektivWord = $pkg.AdjektivWord = $newType(0, $kindStruct, "language.AdjektivWord", true, "github.com/Armienn/GoLanguage/language", true, function(Forms_) {
-		this.$val = this;
-		if (arguments.length === 0) {
-			this.Forms = false;
-			return;
-		}
-		this.Forms = Forms_;
-	});
-	AdverbiumWord = $pkg.AdverbiumWord = $newType(0, $kindStruct, "language.AdverbiumWord", true, "github.com/Armienn/GoLanguage/language", true, function(Forms_) {
-		this.$val = this;
-		if (arguments.length === 0) {
-			this.Forms = false;
-			return;
-		}
-		this.Forms = Forms_;
-	});
-	SimpleWord = $pkg.SimpleWord = $newType(0, $kindStruct, "language.SimpleWord", true, "github.com/Armienn/GoLanguage/language", true, function(Forms_) {
-		this.$val = this;
-		if (arguments.length === 0) {
-			this.Forms = false;
-			return;
-		}
-		this.Forms = Forms_;
-	});
-	sliceType = $sliceType(grammatics.WordRepresenter);
-	ptrType = $ptrType(grammatics.DanishSentence);
-	mapType = $mapType($String, WordString);
-	ptrType$1 = $ptrType(grammatics.Substantiv);
-	ptrType$2 = $ptrType(grammatics.Adjektiv);
-	ptrType$3 = $ptrType(grammatics.Adverbium);
-	WordString.ptr.prototype.Representation = function() {
-		var $ptr, word;
-		word = $clone(this, WordString);
-		return new $String(word.Word);
-	};
-	WordString.prototype.Representation = function() { return this.$val.Representation(); };
-	VerbiumWord.ptr.prototype.Representation = function(sentence) {
-		var $ptr, _arg, _arg$1, _arg$10, _arg$11, _arg$12, _arg$13, _arg$2, _arg$3, _arg$4, _arg$5, _arg$6, _arg$7, _arg$8, _arg$9, _entry, _i, _i$1, _i$2, _i$3, _r, _r$1, _r$2, _r$3, _r$4, _r$5, _r$6, _ref, _ref$1, _ref$2, _ref$3, adverbium, i, i$1, part, part$1, part$2, sentence, word, words, x, $s, $r;
-		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _arg = $f._arg; _arg$1 = $f._arg$1; _arg$10 = $f._arg$10; _arg$11 = $f._arg$11; _arg$12 = $f._arg$12; _arg$13 = $f._arg$13; _arg$2 = $f._arg$2; _arg$3 = $f._arg$3; _arg$4 = $f._arg$4; _arg$5 = $f._arg$5; _arg$6 = $f._arg$6; _arg$7 = $f._arg$7; _arg$8 = $f._arg$8; _arg$9 = $f._arg$9; _entry = $f._entry; _i = $f._i; _i$1 = $f._i$1; _i$2 = $f._i$2; _i$3 = $f._i$3; _r = $f._r; _r$1 = $f._r$1; _r$2 = $f._r$2; _r$3 = $f._r$3; _r$4 = $f._r$4; _r$5 = $f._r$5; _r$6 = $f._r$6; _ref = $f._ref; _ref$1 = $f._ref$1; _ref$2 = $f._ref$2; _ref$3 = $f._ref$3; adverbium = $f.adverbium; i = $f.i; i$1 = $f.i$1; part = $f.part; part$1 = $f.part$1; part$2 = $f.part$2; sentence = $f.sentence; word = $f.word; words = $f.words; x = $f.x; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		adverbium = [adverbium];
-		part = [part];
-		part$1 = [part$1];
-		word = $clone(this, VerbiumWord);
-		words = $makeSlice(sliceType, 0);
-		_ref = sentence.Subject;
-		_i = 0;
-		/* while (true) { */ case 1:
-			/* if (!(_i < _ref.$length)) { break; } */ if(!(_i < _ref.$length)) { $s = 2; continue; }
-			i = _i;
-			part$1[0] = $clone(((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]), grammatics.Substantiv);
-			/* */ if (i > 0) { $s = 3; continue; }
-			/* */ $s = 4; continue;
-			/* if (i > 0) { */ case 3:
-				_arg = words;
-				_r = sentence.Language.Og.Representation(); /* */ $s = 5; case 5: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
-				_arg$1 = _r;
-				words = $appendSlice(_arg, _arg$1);
-			/* } */ case 4:
-			_arg$2 = words;
-			_r$1 = part$1[0].Ord.Representation(part$1[0]); /* */ $s = 6; case 6: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
-			_arg$3 = _r$1;
-			words = $appendSlice(_arg$2, _arg$3);
-			_i++;
-		/* } */ $s = 1; continue; case 2:
-		words = $append(words, (x = (_entry = word.Forms[$String.keyFor(sentence.Verb.Tid)], _entry !== undefined ? _entry.v : new WordString.ptr("")), new x.constructor.elem(x)));
-		_ref$1 = sentence.Object;
-		_i$1 = 0;
-		/* while (true) { */ case 7:
-			/* if (!(_i$1 < _ref$1.$length)) { break; } */ if(!(_i$1 < _ref$1.$length)) { $s = 8; continue; }
-			i$1 = _i$1;
-			part[0] = $clone(((_i$1 < 0 || _i$1 >= _ref$1.$length) ? $throwRuntimeError("index out of range") : _ref$1.$array[_ref$1.$offset + _i$1]), grammatics.Substantiv);
-			/* */ if (i$1 > 0) { $s = 9; continue; }
-			/* */ $s = 10; continue;
-			/* if (i$1 > 0) { */ case 9:
-				_arg$4 = words;
-				_r$2 = sentence.Language.Og.Representation(); /* */ $s = 11; case 11: if($c) { $c = false; _r$2 = _r$2.$blk(); } if (_r$2 && _r$2.$blk !== undefined) { break s; }
-				_arg$5 = _r$2;
-				words = $appendSlice(_arg$4, _arg$5);
-			/* } */ case 10:
-			_arg$6 = words;
-			_r$3 = part[0].Ord.Representation(part[0]); /* */ $s = 12; case 12: if($c) { $c = false; _r$3 = _r$3.$blk(); } if (_r$3 && _r$3.$blk !== undefined) { break s; }
-			_arg$7 = _r$3;
-			words = $appendSlice(_arg$6, _arg$7);
-			_i$1++;
-		/* } */ $s = 7; continue; case 8:
-		_ref$2 = sentence.Verb.Adverbier;
-		_i$2 = 0;
-		/* while (true) { */ case 13:
-			/* if (!(_i$2 < _ref$2.$length)) { break; } */ if(!(_i$2 < _ref$2.$length)) { $s = 14; continue; }
-			adverbium[0] = $clone(((_i$2 < 0 || _i$2 >= _ref$2.$length) ? $throwRuntimeError("index out of range") : _ref$2.$array[_ref$2.$offset + _i$2]), grammatics.Adverbium);
-			_arg$8 = words;
-			_r$4 = adverbium[0].Ord.Representation(adverbium[0]); /* */ $s = 15; case 15: if($c) { $c = false; _r$4 = _r$4.$blk(); } if (_r$4 && _r$4.$blk !== undefined) { break s; }
-			_arg$9 = _r$4;
-			words = $appendSlice(_arg$8, _arg$9);
-			_i$2++;
-		/* } */ $s = 13; continue; case 14:
-		_ref$3 = sentence.Other;
-		_i$3 = 0;
-		/* while (true) { */ case 16:
-			/* if (!(_i$3 < _ref$3.$length)) { break; } */ if(!(_i$3 < _ref$3.$length)) { $s = 17; continue; }
-			part$2 = $clone(((_i$3 < 0 || _i$3 >= _ref$3.$length) ? $throwRuntimeError("index out of range") : _ref$3.$array[_ref$3.$offset + _i$3]), grammatics.Forholdsled);
-			_arg$10 = words;
-			_r$5 = part$2.Forholdsord.Representation(); /* */ $s = 18; case 18: if($c) { $c = false; _r$5 = _r$5.$blk(); } if (_r$5 && _r$5.$blk !== undefined) { break s; }
-			_arg$11 = _r$5;
-			words = $appendSlice(_arg$10, _arg$11);
-			_arg$12 = words;
-			_r$6 = part$2.Ord.Ord.Representation(part$2.Ord); /* */ $s = 19; case 19: if($c) { $c = false; _r$6 = _r$6.$blk(); } if (_r$6 && _r$6.$blk !== undefined) { break s; }
-			_arg$13 = _r$6;
-			words = $appendSlice(_arg$12, _arg$13);
-			_i$3++;
-		/* } */ $s = 16; continue; case 17:
-		$s = -1; return words;
-		return words;
-		/* */ } return; } if ($f === undefined) { $f = { $blk: VerbiumWord.ptr.prototype.Representation }; } $f.$ptr = $ptr; $f._arg = _arg; $f._arg$1 = _arg$1; $f._arg$10 = _arg$10; $f._arg$11 = _arg$11; $f._arg$12 = _arg$12; $f._arg$13 = _arg$13; $f._arg$2 = _arg$2; $f._arg$3 = _arg$3; $f._arg$4 = _arg$4; $f._arg$5 = _arg$5; $f._arg$6 = _arg$6; $f._arg$7 = _arg$7; $f._arg$8 = _arg$8; $f._arg$9 = _arg$9; $f._entry = _entry; $f._i = _i; $f._i$1 = _i$1; $f._i$2 = _i$2; $f._i$3 = _i$3; $f._r = _r; $f._r$1 = _r$1; $f._r$2 = _r$2; $f._r$3 = _r$3; $f._r$4 = _r$4; $f._r$5 = _r$5; $f._r$6 = _r$6; $f._ref = _ref; $f._ref$1 = _ref$1; $f._ref$2 = _ref$2; $f._ref$3 = _ref$3; $f.adverbium = adverbium; $f.i = i; $f.i$1 = i$1; $f.part = part; $f.part$1 = part$1; $f.part$2 = part$2; $f.sentence = sentence; $f.word = word; $f.words = words; $f.x = x; $f.$s = $s; $f.$r = $r; return $f;
-	};
-	VerbiumWord.prototype.Representation = function(sentence) { return this.$val.Representation(sentence); };
-	NewVerbiumWord = function(nutid, datid) {
-		var $ptr, datid, nutid;
-		return new VerbiumWord.ptr($makeMap($String.keyFor, [{ k: "nutid", v: new WordString.ptr(nutid) }, { k: "datid", v: new WordString.ptr(datid) }]));
-	};
-	$pkg.NewVerbiumWord = NewVerbiumWord;
-	SubstantivWord.ptr.prototype.Representation = function(ord) {
-		var $ptr, _arg, _arg$1, _arg$2, _arg$3, _entry, _entry$1, _entry$2, _entry$3, _entry$4, _entry$5, _entry$6, _entry$7, _i, _i$1, _r, _r$1, _ref, _ref$1, adjektiv, ejer, form, ord, word, words, x, $s, $r;
-		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _arg = $f._arg; _arg$1 = $f._arg$1; _arg$2 = $f._arg$2; _arg$3 = $f._arg$3; _entry = $f._entry; _entry$1 = $f._entry$1; _entry$2 = $f._entry$2; _entry$3 = $f._entry$3; _entry$4 = $f._entry$4; _entry$5 = $f._entry$5; _entry$6 = $f._entry$6; _entry$7 = $f._entry$7; _i = $f._i; _i$1 = $f._i$1; _r = $f._r; _r$1 = $f._r$1; _ref = $f._ref; _ref$1 = $f._ref$1; adjektiv = $f.adjektiv; ejer = $f.ejer; form = $f.form; ord = $f.ord; word = $f.word; words = $f.words; x = $f.x; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		adjektiv = [adjektiv];
-		ejer = [ejer];
-		word = $clone(this, SubstantivWord);
-		words = $makeSlice(sliceType, 0);
-		_ref = ord.Ejere;
-		_i = 0;
-		/* while (true) { */ case 1:
-			/* if (!(_i < _ref.$length)) { break; } */ if(!(_i < _ref.$length)) { $s = 2; continue; }
-			ejer[0] = $clone(((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]), grammatics.Substantiv);
-			_arg = words;
-			_r = ejer[0].Ord.Representation(ejer[0]); /* */ $s = 3; case 3: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
-			_arg$1 = _r;
-			words = $appendSlice(_arg, _arg$1);
-			_i++;
-		/* } */ $s = 1; continue; case 2:
-		_ref$1 = ord.Tillægsord;
-		_i$1 = 0;
-		/* while (true) { */ case 4:
-			/* if (!(_i$1 < _ref$1.$length)) { break; } */ if(!(_i$1 < _ref$1.$length)) { $s = 5; continue; }
-			adjektiv[0] = $clone(((_i$1 < 0 || _i$1 >= _ref$1.$length) ? $throwRuntimeError("index out of range") : _ref$1.$array[_ref$1.$offset + _i$1]), grammatics.Adjektiv);
-			_arg$2 = words;
-			_r$1 = adjektiv[0].Ord.Representation(adjektiv[0]); /* */ $s = 6; case 6: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
-			_arg$3 = _r$1;
-			words = $appendSlice(_arg$2, _arg$3);
-			_i$1++;
-		/* } */ $s = 4; continue; case 5:
-		form = $clone((_entry = word.Forms[$String.keyFor("ubestemt")], _entry !== undefined ? _entry.v : new WordString.ptr("")), WordString);
-		if (!ord.Bestemt && !ord.Flertal) {
-			WordString.copy(form, (_entry$1 = word.Forms[$String.keyFor("ubestemt")], _entry$1 !== undefined ? _entry$1.v : new WordString.ptr("")));
-			words = $appendSlice(new sliceType([(x = (_entry$2 = word.Forms[$String.keyFor("en")], _entry$2 !== undefined ? _entry$2.v : new WordString.ptr("")), new x.constructor.elem(x))]), words);
-		} else if (ord.Bestemt && !ord.Flertal && (ord.Ejere.$length === 0)) {
-			WordString.copy(form, (_entry$3 = word.Forms[$String.keyFor("bestemt")], _entry$3 !== undefined ? _entry$3.v : new WordString.ptr("")));
-		} else if (ord.Bestemt && !ord.Flertal && ord.Ejere.$length > 0) {
-			WordString.copy(form, (_entry$4 = word.Forms[$String.keyFor("ubestemt")], _entry$4 !== undefined ? _entry$4.v : new WordString.ptr("")));
-		} else if (!ord.Bestemt && ord.Flertal) {
-			WordString.copy(form, (_entry$5 = word.Forms[$String.keyFor("multi")], _entry$5 !== undefined ? _entry$5.v : new WordString.ptr("")));
-		} else if (ord.Bestemt && ord.Flertal && (ord.Ejere.$length === 0)) {
-			WordString.copy(form, (_entry$6 = word.Forms[$String.keyFor("multibestemt")], _entry$6 !== undefined ? _entry$6.v : new WordString.ptr("")));
-		} else if (ord.Bestemt && ord.Flertal && ord.Ejere.$length > 0) {
-			WordString.copy(form, (_entry$7 = word.Forms[$String.keyFor("multi")], _entry$7 !== undefined ? _entry$7.v : new WordString.ptr("")));
-		}
-		if (ord.Ejefald) {
-			form.Word = form.Word + "s";
-		}
-		$s = -1; return $append(words, new form.constructor.elem(form));
-		return $append(words, new form.constructor.elem(form));
-		/* */ } return; } if ($f === undefined) { $f = { $blk: SubstantivWord.ptr.prototype.Representation }; } $f.$ptr = $ptr; $f._arg = _arg; $f._arg$1 = _arg$1; $f._arg$2 = _arg$2; $f._arg$3 = _arg$3; $f._entry = _entry; $f._entry$1 = _entry$1; $f._entry$2 = _entry$2; $f._entry$3 = _entry$3; $f._entry$4 = _entry$4; $f._entry$5 = _entry$5; $f._entry$6 = _entry$6; $f._entry$7 = _entry$7; $f._i = _i; $f._i$1 = _i$1; $f._r = _r; $f._r$1 = _r$1; $f._ref = _ref; $f._ref$1 = _ref$1; $f.adjektiv = adjektiv; $f.ejer = ejer; $f.form = form; $f.ord = ord; $f.word = word; $f.words = words; $f.x = x; $f.$s = $s; $f.$r = $r; return $f;
-	};
-	SubstantivWord.prototype.Representation = function(ord) { return this.$val.Representation(ord); };
-	NewSubstantivWord = function(en, ubestemt, bestemt, multi, multibestemt) {
-		var $ptr, bestemt, en, multi, multibestemt, ubestemt;
-		return new SubstantivWord.ptr($makeMap($String.keyFor, [{ k: "en", v: new WordString.ptr(en) }, { k: "ubestemt", v: new WordString.ptr(ubestemt) }, { k: "bestemt", v: new WordString.ptr(bestemt) }, { k: "multi", v: new WordString.ptr(multi) }, { k: "multibestemt", v: new WordString.ptr(multibestemt) }]));
-	};
-	$pkg.NewSubstantivWord = NewSubstantivWord;
-	AdjektivWord.ptr.prototype.Representation = function(ord) {
-		var $ptr, _entry, ord, word, x;
-		word = $clone(this, AdjektivWord);
-		return new sliceType([(x = (_entry = word.Forms[$String.keyFor("base")], _entry !== undefined ? _entry.v : new WordString.ptr("")), new x.constructor.elem(x))]);
-	};
-	AdjektivWord.prototype.Representation = function(ord) { return this.$val.Representation(ord); };
-	NewAdjektivWord = function(base) {
-		var $ptr, base;
-		return new AdjektivWord.ptr($makeMap($String.keyFor, [{ k: "base", v: new WordString.ptr(base) }]));
-	};
-	$pkg.NewAdjektivWord = NewAdjektivWord;
-	AdverbiumWord.ptr.prototype.Representation = function(ord) {
-		var $ptr, _entry, ord, word, x;
-		word = $clone(this, AdverbiumWord);
-		return new sliceType([(x = (_entry = word.Forms[$String.keyFor("base")], _entry !== undefined ? _entry.v : new WordString.ptr("")), new x.constructor.elem(x))]);
-	};
-	AdverbiumWord.prototype.Representation = function(ord) { return this.$val.Representation(ord); };
-	NewAdverbiumWord = function(base) {
-		var $ptr, base;
-		return new AdverbiumWord.ptr($makeMap($String.keyFor, [{ k: "base", v: new WordString.ptr(base) }]));
-	};
-	$pkg.NewAdverbiumWord = NewAdverbiumWord;
-	SimpleWord.ptr.prototype.Representation = function() {
-		var $ptr, _entry, word, x;
-		word = $clone(this, SimpleWord);
-		return new sliceType([(x = (_entry = word.Forms[$String.keyFor("base")], _entry !== undefined ? _entry.v : new WordString.ptr("")), new x.constructor.elem(x))]);
-	};
-	SimpleWord.prototype.Representation = function() { return this.$val.Representation(); };
-	NewSimpleWord = function(base) {
-		var $ptr, base;
-		return new SimpleWord.ptr($makeMap($String.keyFor, [{ k: "base", v: new WordString.ptr(base) }]));
-	};
-	$pkg.NewSimpleWord = NewSimpleWord;
-	GetDanishLanguage = function() {
-		var $ptr, dansk;
-		dansk = new grammatics.Dansk.ptr(false, false, false, false, false, $ifaceNil, $ifaceNil);
-		dansk.Verber = $makeMap(grammatics.Concept.keyFor, [{ k: "!", v: NewVerbiumWord("!er", "!ede") }, { k: "shine", v: NewVerbiumWord("skinner", "skinnede") }, { k: "rise", v: NewVerbiumWord("stiger", "steg") }, { k: "shout", v: NewVerbiumWord("r\xC3\xA5ber", "r\xC3\xA5bte") }, { k: "jump", v: NewVerbiumWord("hopper", "hoppede") }, { k: "walk", v: NewVerbiumWord("g\xC3\xA5r", "gik") }, { k: "rain", v: NewVerbiumWord("regner", "regnede") }]);
-		dansk.Substantiver = $makeMap(grammatics.Concept.keyFor, [{ k: "!", v: NewSubstantivWord("en", "!", "!en", "!er", "!erne") }, { k: "sun", v: NewSubstantivWord("en", "sol", "solen", "sole", "solene") }, { k: "day", v: NewSubstantivWord("en", "dag", "dagen", "dage", "dagene") }, { k: "person", v: NewSubstantivWord("en", "person", "personen", "personer", "personerne") }, { k: "kitten", v: NewSubstantivWord("en", "killing", "killingen", "killinger", "killingerne") }, { k: "table", v: NewSubstantivWord("et", "bord", "bordet", "borde", "bordene") }]);
-		dansk.Adjektiver = $makeMap(grammatics.Concept.keyFor, [{ k: "!", v: NewAdjektivWord("!") }, { k: "bright", v: NewAdjektivWord("lys") }, { k: "all", v: NewAdjektivWord("alle") }, { k: "small", v: NewAdjektivWord("lille") }, { k: "happy", v: NewAdjektivWord("glad") }, { k: "two", v: NewAdjektivWord("to") }]);
-		dansk.Adverbier = $makeMap(grammatics.Concept.keyFor, [{ k: "!", v: NewAdverbiumWord("!") }, { k: "bright", v: NewAdverbiumWord("lyst") }, { k: "up", v: NewAdverbiumWord("op") }, { k: "again", v: NewAdverbiumWord("igen") }, { k: "two", v: NewAdverbiumWord("to gange") }]);
-		dansk.Præpositioner = $makeMap(grammatics.Concept.keyFor, [{ k: "!", v: NewSimpleWord("!") }, { k: "at", v: NewSimpleWord("ved") }, { k: "before", v: NewSimpleWord("f\xC3\xB8r") }, { k: "after", v: NewSimpleWord("efter") }, { k: "onto", v: NewSimpleWord("op p\xC3\xA5") }]);
-		dansk.Er = NewVerbiumWord("er", "var");
-		return dansk;
-	};
-	$pkg.GetDanishLanguage = GetDanishLanguage;
-	WordString.methods = [{prop: "Representation", name: "Representation", pkg: "", typ: $funcType([], [$emptyInterface], false)}];
-	VerbiumWord.methods = [{prop: "Representation", name: "Representation", pkg: "", typ: $funcType([ptrType], [sliceType], false)}];
-	SubstantivWord.methods = [{prop: "Representation", name: "Representation", pkg: "", typ: $funcType([ptrType$1], [sliceType], false)}];
-	AdjektivWord.methods = [{prop: "Representation", name: "Representation", pkg: "", typ: $funcType([ptrType$2], [sliceType], false)}];
-	AdverbiumWord.methods = [{prop: "Representation", name: "Representation", pkg: "", typ: $funcType([ptrType$3], [sliceType], false)}];
-	SimpleWord.methods = [{prop: "Representation", name: "Representation", pkg: "", typ: $funcType([], [sliceType], false)}];
-	WordString.init("", [{prop: "Word", name: "Word", exported: true, typ: $String, tag: ""}]);
-	VerbiumWord.init("", [{prop: "Forms", name: "Forms", exported: true, typ: mapType, tag: ""}]);
-	SubstantivWord.init("", [{prop: "Forms", name: "Forms", exported: true, typ: mapType, tag: ""}]);
-	AdjektivWord.init("", [{prop: "Forms", name: "Forms", exported: true, typ: mapType, tag: ""}]);
-	AdverbiumWord.init("", [{prop: "Forms", name: "Forms", exported: true, typ: mapType, tag: ""}]);
-	SimpleWord.init("", [{prop: "Forms", name: "Forms", exported: true, typ: mapType, tag: ""}]);
-	$init = function() {
-		$pkg.$init = function() {};
-		/* */ var $f, $c = false, $s = 0, $r; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		$r = grammatics.$init(); /* */ $s = 1; case 1: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
-		/* */ } return; } if ($f === undefined) { $f = { $blk: $init }; } $f.$s = $s; $f.$r = $r; return $f;
-	};
-	$pkg.$init = $init;
-	return $pkg;
-})();
 $packages["math/rand"] = (function() {
-	var $pkg = {}, $init, nosync, math, Source, Rand, lockedSource, rngSource, arrayType, ptrType, ptrType$1, sliceType, ptrType$2, ptrType$3, sliceType$1, ptrType$5, ke, we, fe, kn, wn, fn, globalRand, rng_cooked, absInt32, NewSource, New, read, seedrand;
+	var $pkg = {}, $init, nosync, math, Source, Rand, lockedSource, rngSource, arrayType, ptrType, ptrType$1, sliceType, ptrType$2, ptrType$3, sliceType$1, ptrType$5, ke, we, fe, kn, wn, fn, globalRand, rng_cooked, absInt32, NewSource, New, read, Seed, Intn, seedrand;
 	nosync = $packages["github.com/gopherjs/gopherjs/nosync"];
 	math = $packages["math"];
 	Source = $pkg.Source = $newType(8, $kindInterface, "rand.Source", true, "math/rand", true, null);
@@ -19058,6 +17712,24 @@ $packages["math/rand"] = (function() {
 		return [n, err];
 		/* */ } return; } if ($f === undefined) { $f = { $blk: read }; } $f.$ptr = $ptr; $f._r = _r; $f.err = err; $f.int63 = int63; $f.n = n; $f.p = p; $f.pos = pos; $f.readPos = readPos; $f.readVal = readVal; $f.val = val; $f.$s = $s; $f.$r = $r; return $f;
 	};
+	Seed = function(seed) {
+		var $ptr, seed, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; seed = $f.seed; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+		$r = globalRand.Seed(seed); /* */ $s = 1; case 1: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+		$s = -1; return;
+		return;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: Seed }; } $f.$ptr = $ptr; $f.seed = seed; $f.$s = $s; $f.$r = $r; return $f;
+	};
+	$pkg.Seed = Seed;
+	Intn = function(n) {
+		var $ptr, _r, n, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; n = $f.n; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+		_r = globalRand.Intn(n); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
+		$s = -1; return _r;
+		return _r;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: Intn }; } $f.$ptr = $ptr; $f._r = _r; $f.n = n; $f.$s = $s; $f.$r = $r; return $f;
+	};
+	$pkg.Intn = Intn;
 	lockedSource.ptr.prototype.Int63 = function() {
 		var $ptr, _r, n, r, $s, $r;
 		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; n = $f.n; r = $f.r; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
@@ -19197,9 +17869,1503 @@ $packages["math/rand"] = (function() {
 	return $pkg;
 })();
 $packages["github.com/Armienn/GoLanguage/phonetics"] = (function() {
-	var $pkg = {}, $init, fmt, rand;
+	var $pkg = {}, $init, fmt, rand, Phonetics, Sound, ArticulationPoint, ArticulationManner, TongueShape, Voice, TristateBool, SoundPattern, Syllable, SyllablePattern, Word, sliceType, sliceType$1, sliceType$2, sliceType$3, sliceType$4, sliceType$5, sliceType$6, sliceType$7, sliceType$8, ptrType, mapType, ptrType$1, ptrType$2, ptrType$3, BasicPatterns, addInfo, addVocalInfo, GetIpa, GetDansk, GetDanskePatterns, GetMubPatterns, RandomPhoneticInventory, RandomPhonetics, randomPoints, semiRandomPoint, randomVoices, chooseRandomVoices, randomSoundSet, randomVocalSet, mutateSoundSet, Distance, containsPoint, containsManner, containsShape, containsVoice, RandomSyllable, getSound, getRandomSound, RandomWord;
 	fmt = $packages["fmt"];
 	rand = $packages["math/rand"];
+	Phonetics = $pkg.Phonetics = $newType(0, $kindStruct, "phonetics.Phonetics", true, "github.com/Armienn/GoLanguage/phonetics", true, function(Sounds_, Patterns_) {
+		this.$val = this;
+		if (arguments.length === 0) {
+			this.Sounds = false;
+			this.Patterns = sliceType.nil;
+			return;
+		}
+		this.Sounds = Sounds_;
+		this.Patterns = Patterns_;
+	});
+	Sound = $pkg.Sound = $newType(0, $kindStruct, "phonetics.Sound", true, "github.com/Armienn/GoLanguage/phonetics", true, function(Point_, Manner_, Shape_, Rounded_, Nasal_, Voice_) {
+		this.$val = this;
+		if (arguments.length === 0) {
+			this.Point = 0;
+			this.Manner = 0;
+			this.Shape = 0;
+			this.Rounded = false;
+			this.Nasal = false;
+			this.Voice = 0;
+			return;
+		}
+		this.Point = Point_;
+		this.Manner = Manner_;
+		this.Shape = Shape_;
+		this.Rounded = Rounded_;
+		this.Nasal = Nasal_;
+		this.Voice = Voice_;
+	});
+	ArticulationPoint = $pkg.ArticulationPoint = $newType(4, $kindInt, "phonetics.ArticulationPoint", true, "github.com/Armienn/GoLanguage/phonetics", true, null);
+	ArticulationManner = $pkg.ArticulationManner = $newType(4, $kindInt, "phonetics.ArticulationManner", true, "github.com/Armienn/GoLanguage/phonetics", true, null);
+	TongueShape = $pkg.TongueShape = $newType(4, $kindInt, "phonetics.TongueShape", true, "github.com/Armienn/GoLanguage/phonetics", true, null);
+	Voice = $pkg.Voice = $newType(4, $kindInt, "phonetics.Voice", true, "github.com/Armienn/GoLanguage/phonetics", true, null);
+	TristateBool = $pkg.TristateBool = $newType(1, $kindUint8, "phonetics.TristateBool", true, "github.com/Armienn/GoLanguage/phonetics", true, null);
+	SoundPattern = $pkg.SoundPattern = $newType(0, $kindStruct, "phonetics.SoundPattern", true, "github.com/Armienn/GoLanguage/phonetics", true, function(Points_, Manners_, Shapes_, Rounded_, Nasal_, Voices_) {
+		this.$val = this;
+		if (arguments.length === 0) {
+			this.Points = sliceType$2.nil;
+			this.Manners = sliceType$3.nil;
+			this.Shapes = sliceType$4.nil;
+			this.Rounded = 0;
+			this.Nasal = 0;
+			this.Voices = sliceType$5.nil;
+			return;
+		}
+		this.Points = Points_;
+		this.Manners = Manners_;
+		this.Shapes = Shapes_;
+		this.Rounded = Rounded_;
+		this.Nasal = Nasal_;
+		this.Voices = Voices_;
+	});
+	Syllable = $pkg.Syllable = $newType(0, $kindStruct, "phonetics.Syllable", true, "github.com/Armienn/GoLanguage/phonetics", true, function(OnsetCluster_, NucleusCluster_, CodaCluster_) {
+		this.$val = this;
+		if (arguments.length === 0) {
+			this.OnsetCluster = sliceType$6.nil;
+			this.NucleusCluster = sliceType$6.nil;
+			this.CodaCluster = sliceType$6.nil;
+			return;
+		}
+		this.OnsetCluster = OnsetCluster_;
+		this.NucleusCluster = NucleusCluster_;
+		this.CodaCluster = CodaCluster_;
+	});
+	SyllablePattern = $pkg.SyllablePattern = $newType(0, $kindStruct, "phonetics.SyllablePattern", true, "github.com/Armienn/GoLanguage/phonetics", true, function(OnsetPatterns_, NucleusPatterns_, CodaPatterns_) {
+		this.$val = this;
+		if (arguments.length === 0) {
+			this.OnsetPatterns = sliceType$1.nil;
+			this.NucleusPatterns = sliceType$1.nil;
+			this.CodaPatterns = sliceType$1.nil;
+			return;
+		}
+		this.OnsetPatterns = OnsetPatterns_;
+		this.NucleusPatterns = NucleusPatterns_;
+		this.CodaPatterns = CodaPatterns_;
+	});
+	Word = $pkg.Word = $newType(0, $kindStruct, "phonetics.Word", true, "github.com/Armienn/GoLanguage/phonetics", true, function(Syllables_) {
+		this.$val = this;
+		if (arguments.length === 0) {
+			this.Syllables = sliceType$8.nil;
+			return;
+		}
+		this.Syllables = Syllables_;
+	});
+	sliceType = $sliceType(SyllablePattern);
+	sliceType$1 = $sliceType(SoundPattern);
+	sliceType$2 = $sliceType(ArticulationPoint);
+	sliceType$3 = $sliceType(ArticulationManner);
+	sliceType$4 = $sliceType(TongueShape);
+	sliceType$5 = $sliceType(Voice);
+	sliceType$6 = $sliceType(Sound);
+	sliceType$7 = $sliceType($emptyInterface);
+	sliceType$8 = $sliceType(Syllable);
+	ptrType = $ptrType(Phonetics);
+	mapType = $mapType($String, Sound);
+	ptrType$1 = $ptrType(Sound);
+	ptrType$2 = $ptrType(SoundPattern);
+	ptrType$3 = $ptrType(Word);
+	BasicPatterns = function() {
+		var $ptr, pattern, patterns;
+		patterns = $makeSlice(sliceType, 0);
+		pattern = new SyllablePattern.ptr(sliceType$1.nil, sliceType$1.nil, sliceType$1.nil);
+		pattern.NucleusPatterns = $makeSlice(sliceType$1, 0);
+		pattern.NucleusPatterns = $append(pattern.NucleusPatterns, new SoundPattern.ptr(sliceType$2.nil, new sliceType$3([6, 7, 8, 9, 10, 11, 12]), sliceType$4.nil, 0, 0, sliceType$5.nil));
+		patterns = $append(patterns, pattern);
+		SyllablePattern.copy(pattern, new SyllablePattern.ptr(sliceType$1.nil, sliceType$1.nil, sliceType$1.nil));
+		pattern.CodaPatterns = $makeSlice(sliceType$1, 0);
+		pattern.CodaPatterns = $append(pattern.CodaPatterns, new SoundPattern.ptr(sliceType$2.nil, new sliceType$3([0, 1, 2, 3, 4, 5]), sliceType$4.nil, 0, 0, sliceType$5.nil));
+		patterns = $append(patterns, pattern);
+		SyllablePattern.copy(pattern, new SyllablePattern.ptr(sliceType$1.nil, sliceType$1.nil, sliceType$1.nil));
+		pattern.OnsetPatterns = $makeSlice(sliceType$1, 0);
+		pattern.OnsetPatterns = $append(pattern.OnsetPatterns, new SoundPattern.ptr(sliceType$2.nil, new sliceType$3([0, 1, 2, 3, 4, 5]), sliceType$4.nil, 0, 0, sliceType$5.nil));
+		patterns = $append(patterns, pattern);
+		return patterns;
+	};
+	$pkg.BasicPatterns = BasicPatterns;
+	addInfo = function(language, sound, point, voiced, representation) {
+		var $ptr, _key, language, point, representation, sound, voiced;
+		sound = $clone(sound, Sound);
+		sound.Point = point;
+		if (voiced) {
+			sound.Voice = 3;
+		} else {
+			sound.Voice = 1;
+		}
+		_key = representation; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key)] = { k: _key, v: $clone(sound, Sound) };
+	};
+	addVocalInfo = function(language, sound, manner, rounded, representation) {
+		var $ptr, _key, language, manner, representation, rounded, sound;
+		sound = $clone(sound, Sound);
+		sound.Manner = manner;
+		sound.Rounded = rounded;
+		_key = representation; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key)] = { k: _key, v: $clone(sound, Sound) };
+	};
+	GetIpa = function() {
+		var $ptr, baseSound, language;
+		language = new Phonetics.ptr(false, sliceType.nil);
+		language.Sounds = {};
+		language.Patterns = BasicPatterns();
+		baseSound = new Sound.ptr(0, 0, 0, false, true, 1);
+		addInfo(language, baseSound, 0, false, "m\xCC\xA5");
+		addInfo(language, baseSound, 0, true, "m");
+		addInfo(language, baseSound, 1, true, "\xC9\xB1");
+		addInfo(language, baseSound, 2, false, "n\xCC\xBC\xCC\x8A");
+		addInfo(language, baseSound, 2, true, "n\xCC\xBC");
+		addInfo(language, baseSound, 4, false, "n\xCC\xA5");
+		addInfo(language, baseSound, 4, true, "n");
+		addInfo(language, baseSound, 6, false, "\xC9\xB3\xCC\x8A");
+		addInfo(language, baseSound, 6, true, "\xC9\xB3");
+		addInfo(language, baseSound, 8, false, "\xC9\xB2\xCC\x8A");
+		addInfo(language, baseSound, 8, true, "\xC9\xB2");
+		addInfo(language, baseSound, 10, false, "\xC5\x8B\xCC\x8A");
+		addInfo(language, baseSound, 10, true, "\xC5\x8B");
+		addInfo(language, baseSound, 12, false, "\xC9\xB4\xCC\xA5");
+		addInfo(language, baseSound, 12, true, "\xC9\xB4");
+		Sound.copy(baseSound, new Sound.ptr(0, 1, 0, false, false, 1));
+		addInfo(language, baseSound, 0, false, "p");
+		addInfo(language, baseSound, 0, true, "b");
+		addInfo(language, baseSound, 1, false, "p\xCC\xAA");
+		addInfo(language, baseSound, 1, true, "b\xCC\xAA");
+		addInfo(language, baseSound, 2, false, "t\xCC\xBC");
+		addInfo(language, baseSound, 2, true, "d\xCC\xBC");
+		addInfo(language, baseSound, 4, false, "t");
+		addInfo(language, baseSound, 4, true, "d");
+		addInfo(language, baseSound, 6, false, "\xCA\x88");
+		addInfo(language, baseSound, 6, true, "\xC9\x96");
+		addInfo(language, baseSound, 8, false, "c");
+		addInfo(language, baseSound, 8, true, "\xC9\x9F");
+		addInfo(language, baseSound, 10, false, "k");
+		addInfo(language, baseSound, 10, true, "\xC9\xA1");
+		addInfo(language, baseSound, 12, false, "q");
+		addInfo(language, baseSound, 12, true, "\xC9\xA2");
+		addInfo(language, baseSound, 13, true, "\xCA\xA1");
+		addInfo(language, baseSound, 15, false, "\xCA\x94");
+		Sound.copy(baseSound, new Sound.ptr(0, 4, 2, false, false, 1));
+		addInfo(language, baseSound, 4, false, "s");
+		addInfo(language, baseSound, 4, true, "z");
+		addInfo(language, baseSound, 5, false, "\xCA\x83");
+		addInfo(language, baseSound, 5, true, "\xCA\x92");
+		addInfo(language, baseSound, 6, false, "\xCA\x82");
+		addInfo(language, baseSound, 6, true, "\xCA\x90");
+		addInfo(language, baseSound, 7, false, "\xC9\x95");
+		addInfo(language, baseSound, 7, true, "\xCA\x91");
+		Sound.copy(baseSound, new Sound.ptr(0, 4, 0, false, false, 1));
+		addInfo(language, baseSound, 0, false, "\xC9\xB8");
+		addInfo(language, baseSound, 0, true, "\xCE\xB2");
+		addInfo(language, baseSound, 1, false, "f");
+		addInfo(language, baseSound, 1, true, "v");
+		addInfo(language, baseSound, 2, false, "\xCE\xB8\xCC\xBC");
+		addInfo(language, baseSound, 2, true, "\xC3\xB0\xCC\xBC");
+		addInfo(language, baseSound, 3, false, "\xCE\xB8");
+		addInfo(language, baseSound, 3, true, "\xC3\xB0");
+		addInfo(language, baseSound, 4, false, "\xCE\xB8\xCC\xB1");
+		addInfo(language, baseSound, 4, true, "\xC3\xB0\xCC\xA0");
+		addInfo(language, baseSound, 5, false, "\xC9\xB9\xCC\xA0\xCC\x8A\xCB\x94");
+		addInfo(language, baseSound, 5, true, "\xC9\xB9\xCC\xA0\xCB\x94");
+		addInfo(language, baseSound, 8, false, "\xC3\xA7");
+		addInfo(language, baseSound, 8, true, "\xCA\x9D");
+		addInfo(language, baseSound, 10, false, "x");
+		addInfo(language, baseSound, 10, true, "\xC9\xA3");
+		addInfo(language, baseSound, 12, false, "\xCF\x87");
+		addInfo(language, baseSound, 12, true, "\xCA\x81");
+		addInfo(language, baseSound, 13, false, "\xC4\xA7");
+		addInfo(language, baseSound, 13, true, "\xCA\x95");
+		addInfo(language, baseSound, 15, false, "h");
+		addInfo(language, baseSound, 15, true, "\xC9\xA6");
+		Sound.copy(baseSound, new Sound.ptr(0, 5, 0, false, false, 1));
+		addInfo(language, baseSound, 0, false, "\xC9\xB8");
+		addInfo(language, baseSound, 0, true, "\xCE\xB2");
+		addInfo(language, baseSound, 1, false, "\xCA\x8B\xCC\xA5");
+		addInfo(language, baseSound, 1, true, "\xCA\x8B");
+		addInfo(language, baseSound, 2, true, "\xC3\xB0\xCC\xBC");
+		addInfo(language, baseSound, 3, false, "\xCE\xB8");
+		addInfo(language, baseSound, 3, true, "\xC3\xB0");
+		addInfo(language, baseSound, 4, false, "\xC9\xB9\xCC\xA5");
+		addInfo(language, baseSound, 4, true, "\xC9\xB9");
+		addInfo(language, baseSound, 6, false, "\xC9\xBB\xCC\x8A");
+		addInfo(language, baseSound, 6, true, "\xC9\xBB");
+		addInfo(language, baseSound, 8, false, "j\xCC\x8A");
+		addInfo(language, baseSound, 8, true, "j");
+		addInfo(language, baseSound, 10, false, "\xC9\xB0\xCC\x8A");
+		addInfo(language, baseSound, 10, true, "\xC9\xB0");
+		addInfo(language, baseSound, 12, true, "\xCA\x81");
+		addInfo(language, baseSound, 13, true, "\xCA\x95");
+		addInfo(language, baseSound, 15, false, "h");
+		addInfo(language, baseSound, 15, true, "\xCA\x94\xCC\x9E");
+		Sound.copy(baseSound, new Sound.ptr(0, 2, 0, false, false, 1));
+		addInfo(language, baseSound, 0, true, "\xE2\xB1\xB1\xCC\x9F");
+		addInfo(language, baseSound, 1, true, "\xE2\xB1\xB1");
+		addInfo(language, baseSound, 2, true, "\xC9\xBE\xCC\xBC");
+		addInfo(language, baseSound, 4, false, "\xC9\xBE\xCC\xA5");
+		addInfo(language, baseSound, 4, true, "\xC9\xBE");
+		addInfo(language, baseSound, 6, false, "\xC9\xBD\xCC\x8A");
+		addInfo(language, baseSound, 6, true, "\xC9\xBD");
+		addInfo(language, baseSound, 12, true, "\xC9\xA2\xCC\x86");
+		addInfo(language, baseSound, 13, true, "\xCA\xA1\xCC\xAE");
+		Sound.copy(baseSound, new Sound.ptr(0, 3, 0, false, false, 1));
+		addInfo(language, baseSound, 0, true, "\xCA\x99");
+		addInfo(language, baseSound, 2, true, "r\xCC\xBC");
+		addInfo(language, baseSound, 4, false, "r\xCC\xA5");
+		addInfo(language, baseSound, 4, true, "r");
+		addInfo(language, baseSound, 6, false, "\xC9\xBDr\xCC\xA5");
+		addInfo(language, baseSound, 6, true, "\xC9\xBDr");
+		addInfo(language, baseSound, 12, false, "\xCA\x80\xCC\xA5");
+		addInfo(language, baseSound, 12, true, "\xCA\x80");
+		addInfo(language, baseSound, 13, false, "\xCA\x9C");
+		addInfo(language, baseSound, 13, true, "\xCA\xA2");
+		Sound.copy(baseSound, new Sound.ptr(0, 4, 1, false, false, 1));
+		addInfo(language, baseSound, 4, false, "\xC9\xAC");
+		addInfo(language, baseSound, 4, true, "\xC9\xAE");
+		addInfo(language, baseSound, 6, false, "\xC9\xAD\xCC\x8A\xCB\x94");
+		addInfo(language, baseSound, 8, false, "\xCA\x8E\xCC\xA5\xCB\x94");
+		addInfo(language, baseSound, 8, true, "\xCA\x8E\xCC\x9D");
+		addInfo(language, baseSound, 10, false, "\xCA\x9F\xCC\x9D\xCC\x8A");
+		addInfo(language, baseSound, 10, true, "\xCA\x9F\xCC\x9D");
+		Sound.copy(baseSound, new Sound.ptr(0, 5, 1, false, false, 1));
+		addInfo(language, baseSound, 2, true, "l\xCC\xBC");
+		addInfo(language, baseSound, 4, false, "l\xCC\xA5");
+		addInfo(language, baseSound, 4, true, "l");
+		addInfo(language, baseSound, 6, false, "\xC9\xAD\xCC\x8A");
+		addInfo(language, baseSound, 6, true, "\xC9\xAD\xCC\x8A");
+		addInfo(language, baseSound, 8, false, "\xCA\x8E\xCC\xA5");
+		addInfo(language, baseSound, 8, true, "\xCA\x8E");
+		addInfo(language, baseSound, 10, false, "\xCA\x9F\xCC\xA5");
+		addInfo(language, baseSound, 10, true, "\xCA\x9F");
+		addInfo(language, baseSound, 12, true, "\xCA\x9F\xCC\xA0");
+		Sound.copy(baseSound, new Sound.ptr(0, 2, 1, false, false, 1));
+		addInfo(language, baseSound, 2, true, "\xC9\xBA\xCC\xBC");
+		addInfo(language, baseSound, 4, true, "\xC9\xBA");
+		addInfo(language, baseSound, 6, true, "\xC9\xAD\xCC\x86");
+		addInfo(language, baseSound, 8, true, "\xCA\x8E\xCC\xAE");
+		addInfo(language, baseSound, 10, true, "\xCA\x9F\xCC\x86");
+		Sound.copy(baseSound, new Sound.ptr(8, 6, 0, false, false, 3));
+		addVocalInfo(language, baseSound, 6, false, "i");
+		addVocalInfo(language, baseSound, 6, true, "y");
+		addVocalInfo(language, baseSound, 8, false, "e");
+		addVocalInfo(language, baseSound, 8, true, "\xC3\xB8");
+		addVocalInfo(language, baseSound, 9, false, "e\xCC\x9E");
+		addVocalInfo(language, baseSound, 9, true, "\xC3\xB8\xCC\x9E");
+		addVocalInfo(language, baseSound, 10, false, "\xC9\x9B");
+		addVocalInfo(language, baseSound, 10, true, "\xC5\x93");
+		addVocalInfo(language, baseSound, 11, false, "\xC3\xA6");
+		addVocalInfo(language, baseSound, 12, false, "a");
+		addVocalInfo(language, baseSound, 12, true, "\xC9\xB6");
+		Sound.copy(baseSound, new Sound.ptr(10, 6, 0, false, false, 3));
+		addVocalInfo(language, baseSound, 6, false, "\xC9\xA8");
+		addVocalInfo(language, baseSound, 6, true, "\xCA\x89");
+		addVocalInfo(language, baseSound, 7, false, "\xC9\xAA\xCC\x88");
+		addVocalInfo(language, baseSound, 7, true, "\xCA\x8A\xCC\x88");
+		addVocalInfo(language, baseSound, 8, false, "\xC9\x98");
+		addVocalInfo(language, baseSound, 8, true, "\xC9\xB5");
+		addVocalInfo(language, baseSound, 9, false, "\xC9\x99");
+		addVocalInfo(language, baseSound, 9, true, "\xC9\xB5\xCC\x9E");
+		addVocalInfo(language, baseSound, 10, false, "\xC9\x9C");
+		addVocalInfo(language, baseSound, 10, true, "\xC9\x9E");
+		addVocalInfo(language, baseSound, 11, false, "\xC9\x90");
+		addVocalInfo(language, baseSound, 11, true, "\xC9\x9E\xCC\x9E");
+		addVocalInfo(language, baseSound, 12, false, "\xC3\xA4");
+		addVocalInfo(language, baseSound, 12, true, "\xC9\x92\xCC\x88");
+		Sound.copy(baseSound, new Sound.ptr(12, 6, 0, false, false, 3));
+		addVocalInfo(language, baseSound, 6, false, "\xC9\xAF");
+		addVocalInfo(language, baseSound, 6, true, "u");
+		addVocalInfo(language, baseSound, 8, false, "\xC9\xA4");
+		addVocalInfo(language, baseSound, 8, true, "o");
+		addVocalInfo(language, baseSound, 9, false, "\xC9\xA4\xCC\x9E");
+		addVocalInfo(language, baseSound, 9, true, "o\xCC\x9E");
+		addVocalInfo(language, baseSound, 10, false, "\xCA\x8C");
+		addVocalInfo(language, baseSound, 10, true, "\xC9\x94");
+		addVocalInfo(language, baseSound, 12, false, "\xC9\x91");
+		addVocalInfo(language, baseSound, 12, true, "\xC9\x92");
+		Sound.copy(baseSound, new Sound.ptr(9, 6, 0, false, false, 3));
+		addVocalInfo(language, baseSound, 7, false, "\xC9\xAA");
+		addVocalInfo(language, baseSound, 7, true, "\xCA\x8F");
+		Sound.copy(baseSound, new Sound.ptr(11, 6, 0, false, false, 3));
+		addVocalInfo(language, baseSound, 7, false, "\xC9\xAF\xCC\xBD");
+		addVocalInfo(language, baseSound, 7, true, "\xCA\x8A");
+		return language;
+	};
+	$pkg.GetIpa = GetIpa;
+	GetDansk = function() {
+		var $ptr, _key, _key$1, _key$10, _key$11, _key$12, _key$13, _key$14, _key$15, _key$16, _key$17, _key$18, _key$19, _key$2, _key$20, _key$21, _key$22, _key$23, _key$24, _key$25, _key$26, _key$27, _key$3, _key$4, _key$5, _key$6, _key$7, _key$8, _key$9, language, sound;
+		language = new Phonetics.ptr(false, sliceType.nil);
+		language.Sounds = {};
+		language.Patterns = $makeSlice(sliceType, 0);
+		sound = new Sound.ptr(0, 0, 0, false, false, 0);
+		sound.Manner = 0;
+		sound.Point = 0;
+		sound.Shape = 0;
+		sound.Voice = 3;
+		sound.Nasal = true;
+		sound.Rounded = false;
+		_key = "m"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key)] = { k: _key, v: $clone(sound, Sound) };
+		sound.Manner = 0;
+		sound.Point = 4;
+		sound.Shape = 0;
+		sound.Voice = 3;
+		sound.Nasal = true;
+		sound.Rounded = false;
+		_key$1 = "n"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$1)] = { k: _key$1, v: $clone(sound, Sound) };
+		sound.Manner = 0;
+		sound.Point = 10;
+		sound.Shape = 0;
+		sound.Voice = 3;
+		sound.Nasal = true;
+		sound.Rounded = false;
+		_key$2 = "\xC5\x8B"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$2)] = { k: _key$2, v: $clone(sound, Sound) };
+		sound.Manner = 1;
+		sound.Point = 0;
+		sound.Shape = 0;
+		sound.Voice = 0;
+		sound.Nasal = false;
+		sound.Rounded = false;
+		_key$3 = "p"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$3)] = { k: _key$3, v: $clone(sound, Sound) };
+		sound.Manner = 1;
+		sound.Point = 0;
+		sound.Shape = 0;
+		sound.Voice = 1;
+		sound.Nasal = false;
+		sound.Rounded = false;
+		_key$4 = "b"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$4)] = { k: _key$4, v: $clone(sound, Sound) };
+		sound.Manner = 1;
+		sound.Point = 4;
+		sound.Shape = 0;
+		sound.Voice = 0;
+		sound.Nasal = false;
+		sound.Rounded = false;
+		_key$5 = "t"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$5)] = { k: _key$5, v: $clone(sound, Sound) };
+		sound.Manner = 1;
+		sound.Point = 4;
+		sound.Shape = 0;
+		sound.Voice = 1;
+		sound.Nasal = false;
+		sound.Rounded = false;
+		_key$6 = "d"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$6)] = { k: _key$6, v: $clone(sound, Sound) };
+		sound.Manner = 1;
+		sound.Point = 10;
+		sound.Shape = 0;
+		sound.Voice = 0;
+		sound.Nasal = false;
+		sound.Rounded = false;
+		_key$7 = "k"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$7)] = { k: _key$7, v: $clone(sound, Sound) };
+		sound.Manner = 1;
+		sound.Point = 10;
+		sound.Shape = 0;
+		sound.Voice = 1;
+		sound.Nasal = false;
+		sound.Rounded = false;
+		_key$8 = "g"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$8)] = { k: _key$8, v: $clone(sound, Sound) };
+		sound.Manner = 4;
+		sound.Point = 1;
+		sound.Shape = 0;
+		sound.Voice = 1;
+		sound.Nasal = false;
+		sound.Rounded = false;
+		_key$9 = "f"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$9)] = { k: _key$9, v: $clone(sound, Sound) };
+		sound.Manner = 5;
+		sound.Point = 1;
+		sound.Shape = 0;
+		sound.Voice = 3;
+		sound.Nasal = false;
+		sound.Rounded = false;
+		_key$10 = "v"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$10)] = { k: _key$10, v: $clone(sound, Sound) };
+		sound.Manner = 4;
+		sound.Point = 4;
+		sound.Shape = 2;
+		sound.Voice = 1;
+		sound.Nasal = false;
+		sound.Rounded = false;
+		_key$11 = "s"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$11)] = { k: _key$11, v: $clone(sound, Sound) };
+		sound.Manner = 5;
+		sound.Point = 4;
+		sound.Shape = 0;
+		sound.Voice = 3;
+		sound.Nasal = false;
+		sound.Rounded = false;
+		_key$12 = "\xC3\xB0"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$12)] = { k: _key$12, v: $clone(sound, Sound) };
+		sound.Manner = 5;
+		sound.Point = 8;
+		sound.Shape = 0;
+		sound.Voice = 3;
+		sound.Nasal = false;
+		sound.Rounded = false;
+		_key$13 = "j"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$13)] = { k: _key$13, v: $clone(sound, Sound) };
+		sound.Manner = 5;
+		sound.Point = 4;
+		sound.Shape = 1;
+		sound.Voice = 1;
+		sound.Nasal = false;
+		sound.Rounded = false;
+		_key$14 = "l"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$14)] = { k: _key$14, v: $clone(sound, Sound) };
+		sound.Manner = 5;
+		sound.Point = 12;
+		sound.Shape = 0;
+		sound.Voice = 3;
+		sound.Nasal = false;
+		sound.Rounded = false;
+		_key$15 = "r"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$15)] = { k: _key$15, v: $clone(sound, Sound) };
+		sound.Manner = 4;
+		sound.Point = 15;
+		sound.Shape = 0;
+		sound.Voice = 1;
+		sound.Nasal = false;
+		sound.Rounded = false;
+		_key$16 = "h"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$16)] = { k: _key$16, v: $clone(sound, Sound) };
+		sound.Manner = 6;
+		sound.Point = 8;
+		sound.Shape = 0;
+		sound.Voice = 3;
+		sound.Nasal = false;
+		sound.Rounded = false;
+		_key$17 = "i"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$17)] = { k: _key$17, v: $clone(sound, Sound) };
+		sound.Manner = 6;
+		sound.Point = 9;
+		sound.Shape = 0;
+		sound.Voice = 3;
+		sound.Nasal = false;
+		sound.Rounded = true;
+		_key$18 = "y"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$18)] = { k: _key$18, v: $clone(sound, Sound) };
+		sound.Manner = 8;
+		sound.Point = 8;
+		sound.Shape = 0;
+		sound.Voice = 3;
+		sound.Nasal = false;
+		sound.Rounded = false;
+		_key$19 = "e"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$19)] = { k: _key$19, v: $clone(sound, Sound) };
+		sound.Manner = 8;
+		sound.Point = 9;
+		sound.Shape = 0;
+		sound.Voice = 3;
+		sound.Nasal = false;
+		sound.Rounded = true;
+		_key$20 = "\xC3\xB8"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$20)] = { k: _key$20, v: $clone(sound, Sound) };
+		sound.Manner = 10;
+		sound.Point = 8;
+		sound.Shape = 0;
+		sound.Voice = 3;
+		sound.Nasal = false;
+		sound.Rounded = false;
+		_key$21 = "\xC3\xA6"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$21)] = { k: _key$21, v: $clone(sound, Sound) };
+		sound.Manner = 9;
+		sound.Point = 10;
+		sound.Shape = 0;
+		sound.Voice = 3;
+		sound.Nasal = false;
+		sound.Rounded = false;
+		_key$22 = "\xC9\x99"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$22)] = { k: _key$22, v: $clone(sound, Sound) };
+		sound.Manner = 6;
+		sound.Point = 12;
+		sound.Shape = 0;
+		sound.Voice = 3;
+		sound.Nasal = false;
+		sound.Rounded = true;
+		_key$23 = "u"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$23)] = { k: _key$23, v: $clone(sound, Sound) };
+		sound.Manner = 8;
+		sound.Point = 12;
+		sound.Shape = 0;
+		sound.Voice = 3;
+		sound.Nasal = false;
+		sound.Rounded = true;
+		_key$24 = "o"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$24)] = { k: _key$24, v: $clone(sound, Sound) };
+		sound.Manner = 8;
+		sound.Point = 11;
+		sound.Shape = 0;
+		sound.Voice = 3;
+		sound.Nasal = false;
+		sound.Rounded = true;
+		_key$25 = "\xC3\xA5"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$25)] = { k: _key$25, v: $clone(sound, Sound) };
+		sound.Manner = 11;
+		sound.Point = 8;
+		sound.Shape = 0;
+		sound.Voice = 3;
+		sound.Nasal = false;
+		sound.Rounded = false;
+		_key$26 = "a"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$26)] = { k: _key$26, v: $clone(sound, Sound) };
+		sound.Manner = 11;
+		sound.Point = 11;
+		sound.Shape = 0;
+		sound.Voice = 3;
+		sound.Nasal = false;
+		sound.Rounded = false;
+		_key$27 = "\xC9\x92"; (language.Sounds || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key$27)] = { k: _key$27, v: $clone(sound, Sound) };
+		language.Patterns = GetDanskePatterns();
+		return language;
+	};
+	$pkg.GetDansk = GetDansk;
+	GetDanskePatterns = function() {
+		var $ptr, pattern, patterns;
+		patterns = $makeSlice(sliceType, 0);
+		pattern = new SyllablePattern.ptr(sliceType$1.nil, sliceType$1.nil, sliceType$1.nil);
+		pattern.NucleusPatterns = $makeSlice(sliceType$1, 0);
+		pattern.NucleusPatterns = $append(pattern.NucleusPatterns, new SoundPattern.ptr(sliceType$2.nil, new sliceType$3([6, 7, 8, 9, 10, 11, 12]), sliceType$4.nil, 0, 0, sliceType$5.nil));
+		patterns = $append(patterns, pattern);
+		SyllablePattern.copy(pattern, new SyllablePattern.ptr(sliceType$1.nil, sliceType$1.nil, sliceType$1.nil));
+		pattern.OnsetPatterns = $makeSlice(sliceType$1, 0);
+		pattern.OnsetPatterns = $append(pattern.OnsetPatterns, new SoundPattern.ptr(sliceType$2.nil, new sliceType$3([1, 4]), sliceType$4.nil, 0, 0, sliceType$5.nil));
+		patterns = $append(patterns, pattern);
+		SyllablePattern.copy(pattern, new SyllablePattern.ptr(sliceType$1.nil, sliceType$1.nil, sliceType$1.nil));
+		pattern.OnsetPatterns = $makeSlice(sliceType$1, 0);
+		pattern.OnsetPatterns = $append(pattern.OnsetPatterns, new SoundPattern.ptr(new sliceType$2([0, 4]), new sliceType$3([0]), sliceType$4.nil, 0, 0, sliceType$5.nil));
+		patterns = $append(patterns, pattern);
+		SyllablePattern.copy(pattern, new SyllablePattern.ptr(sliceType$1.nil, sliceType$1.nil, sliceType$1.nil));
+		pattern.OnsetPatterns = $makeSlice(sliceType$1, 0);
+		pattern.OnsetPatterns = $append(pattern.OnsetPatterns, new SoundPattern.ptr(new sliceType$2([1, 8, 12]), new sliceType$3([5]), sliceType$4.nil, 0, 0, sliceType$5.nil));
+		patterns = $append(patterns, pattern);
+		SyllablePattern.copy(pattern, new SyllablePattern.ptr(sliceType$1.nil, sliceType$1.nil, sliceType$1.nil));
+		pattern.OnsetPatterns = $makeSlice(sliceType$1, 0);
+		pattern.OnsetPatterns = $append(pattern.OnsetPatterns, new SoundPattern.ptr(new sliceType$2([4]), new sliceType$3([5]), new sliceType$4([1]), 0, 0, sliceType$5.nil));
+		patterns = $append(patterns, pattern);
+		SyllablePattern.copy(pattern, new SyllablePattern.ptr(sliceType$1.nil, sliceType$1.nil, sliceType$1.nil));
+		pattern.CodaPatterns = $makeSlice(sliceType$1, 0);
+		pattern.CodaPatterns = $append(pattern.CodaPatterns, new SoundPattern.ptr(sliceType$2.nil, new sliceType$3([0, 1, 4, 5]), sliceType$4.nil, 0, 0, sliceType$5.nil));
+		patterns = $append(patterns, pattern);
+		SyllablePattern.copy(pattern, new SyllablePattern.ptr(sliceType$1.nil, sliceType$1.nil, sliceType$1.nil));
+		pattern.OnsetPatterns = $makeSlice(sliceType$1, 0);
+		pattern.OnsetPatterns = $append(pattern.OnsetPatterns, new SoundPattern.ptr(sliceType$2.nil, new sliceType$3([4]), new sliceType$4([2]), 0, 0, sliceType$5.nil));
+		pattern.OnsetPatterns = $append(pattern.OnsetPatterns, new SoundPattern.ptr(sliceType$2.nil, new sliceType$3([1]), sliceType$4.nil, 0, 0, new sliceType$5([1])));
+		patterns = $append(patterns, pattern);
+		SyllablePattern.copy(pattern, new SyllablePattern.ptr(sliceType$1.nil, sliceType$1.nil, sliceType$1.nil));
+		pattern.OnsetPatterns = $makeSlice(sliceType$1, 0);
+		pattern.OnsetPatterns = $append(pattern.OnsetPatterns, new SoundPattern.ptr(sliceType$2.nil, new sliceType$3([4]), new sliceType$4([2]), 0, 0, sliceType$5.nil));
+		pattern.OnsetPatterns = $append(pattern.OnsetPatterns, new SoundPattern.ptr(sliceType$2.nil, new sliceType$3([1]), sliceType$4.nil, 0, 0, new sliceType$5([1])));
+		pattern.OnsetPatterns = $append(pattern.OnsetPatterns, new SoundPattern.ptr(new sliceType$2([12]), new sliceType$3([5]), sliceType$4.nil, 0, 0, sliceType$5.nil));
+		patterns = $append(patterns, pattern);
+		return patterns;
+	};
+	$pkg.GetDanskePatterns = GetDanskePatterns;
+	GetMubPatterns = function() {
+		var $ptr, pattern, patterns;
+		patterns = $makeSlice(sliceType, 0);
+		pattern = new SyllablePattern.ptr(sliceType$1.nil, sliceType$1.nil, sliceType$1.nil);
+		pattern.NucleusPatterns = $makeSlice(sliceType$1, 0);
+		pattern.NucleusPatterns = $append(pattern.NucleusPatterns, new SoundPattern.ptr(sliceType$2.nil, new sliceType$3([6, 7, 8, 9, 10, 11, 12]), sliceType$4.nil, 0, 0, sliceType$5.nil));
+		patterns = $append(patterns, pattern);
+		SyllablePattern.copy(pattern, new SyllablePattern.ptr(sliceType$1.nil, sliceType$1.nil, sliceType$1.nil));
+		pattern.OnsetPatterns = $makeSlice(sliceType$1, 0);
+		pattern.OnsetPatterns = $append(pattern.OnsetPatterns, new SoundPattern.ptr(sliceType$2.nil, new sliceType$3([0, 1, 2, 3, 4, 5]), sliceType$4.nil, 0, 0, sliceType$5.nil));
+		patterns = $append(patterns, pattern);
+		SyllablePattern.copy(pattern, new SyllablePattern.ptr(sliceType$1.nil, sliceType$1.nil, sliceType$1.nil));
+		pattern.CodaPatterns = $makeSlice(sliceType$1, 0);
+		pattern.CodaPatterns = $append(pattern.CodaPatterns, new SoundPattern.ptr(sliceType$2.nil, new sliceType$3([0, 1, 2, 3, 4, 5]), sliceType$4.nil, 0, 0, sliceType$5.nil));
+		patterns = $append(patterns, pattern);
+		SyllablePattern.copy(pattern, new SyllablePattern.ptr(sliceType$1.nil, sliceType$1.nil, sliceType$1.nil));
+		pattern.OnsetPatterns = $makeSlice(sliceType$1, 0);
+		pattern.OnsetPatterns = $append(pattern.OnsetPatterns, new SoundPattern.ptr(sliceType$2.nil, new sliceType$3([1]), sliceType$4.nil, 0, 0, sliceType$5.nil));
+		pattern.OnsetPatterns = $append(pattern.OnsetPatterns, new SoundPattern.ptr(sliceType$2.nil, new sliceType$3([4, 5]), sliceType$4.nil, 0, 0, sliceType$5.nil));
+		patterns = $append(patterns, pattern);
+		return patterns;
+	};
+	$pkg.GetMubPatterns = GetMubPatterns;
+	Phonetics.ptr.prototype.GetWordRepresentation = function(word) {
+		var $ptr, _i, _ref, phonetics, result, sound, sounds, word;
+		word = $clone(word, Word);
+		phonetics = this;
+		result = "";
+		sounds = word.GetSounds();
+		_ref = sounds;
+		_i = 0;
+		while (true) {
+			if (!(_i < _ref.$length)) { break; }
+			sound = $clone(((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]), Sound);
+			result = result + (phonetics.GetRepresentation(sound));
+			_i++;
+		}
+		return result;
+	};
+	Phonetics.prototype.GetWordRepresentation = function(word) { return this.$val.GetWordRepresentation(word); };
+	Phonetics.ptr.prototype.GetRepresentation = function(sound) {
+		var $ptr, _entry, _i, _keys, _ref, bestRepresentation, distance, languageSound, minDistance, phonetics, representation, sound;
+		sound = $clone(sound, Sound);
+		phonetics = this;
+		minDistance = 10000;
+		bestRepresentation = "!";
+		_ref = phonetics.Sounds;
+		_i = 0;
+		_keys = $keys(_ref);
+		while (true) {
+			if (!(_i < _keys.length)) { break; }
+			_entry = _ref[_keys[_i]];
+			if (_entry === undefined) {
+				_i++;
+				continue;
+			}
+			representation = _entry.k;
+			languageSound = $clone(_entry.v, Sound);
+			distance = Distance(languageSound, sound);
+			if (distance < minDistance) {
+				minDistance = distance;
+				bestRepresentation = representation;
+			}
+			_i++;
+		}
+		return bestRepresentation;
+	};
+	Phonetics.prototype.GetRepresentation = function(sound) { return this.$val.GetRepresentation(sound); };
+	Phonetics.ptr.prototype.RandomWord = function(syllables) {
+		var $ptr, _r, phonetics, syllables, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; phonetics = $f.phonetics; syllables = $f.syllables; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+		phonetics = this;
+		_r = RandomWord(phonetics, syllables); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
+		$s = -1; return _r;
+		return _r;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: Phonetics.ptr.prototype.RandomWord }; } $f.$ptr = $ptr; $f._r = _r; $f.phonetics = phonetics; $f.syllables = syllables; $f.$s = $s; $f.$r = $r; return $f;
+	};
+	Phonetics.prototype.RandomWord = function(syllables) { return this.$val.RandomWord(syllables); };
+	RandomPhoneticInventory = function() {
+		var $ptr, _arg, _arg$1, _arg$10, _arg$11, _arg$12, _arg$13, _arg$2, _arg$3, _arg$4, _arg$5, _arg$6, _arg$7, _arg$8, _arg$9, _i, _key, _r, _r$1, _r$10, _r$11, _r$12, _r$13, _r$2, _r$3, _r$4, _r$5, _r$6, _r$7, _r$8, _r$9, _ref, basePoints, baseVoices, i, i$1, result, sounds, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _arg = $f._arg; _arg$1 = $f._arg$1; _arg$10 = $f._arg$10; _arg$11 = $f._arg$11; _arg$12 = $f._arg$12; _arg$13 = $f._arg$13; _arg$2 = $f._arg$2; _arg$3 = $f._arg$3; _arg$4 = $f._arg$4; _arg$5 = $f._arg$5; _arg$6 = $f._arg$6; _arg$7 = $f._arg$7; _arg$8 = $f._arg$8; _arg$9 = $f._arg$9; _i = $f._i; _key = $f._key; _r = $f._r; _r$1 = $f._r$1; _r$10 = $f._r$10; _r$11 = $f._r$11; _r$12 = $f._r$12; _r$13 = $f._r$13; _r$2 = $f._r$2; _r$3 = $f._r$3; _r$4 = $f._r$4; _r$5 = $f._r$5; _r$6 = $f._r$6; _r$7 = $f._r$7; _r$8 = $f._r$8; _r$9 = $f._r$9; _ref = $f._ref; basePoints = $f.basePoints; baseVoices = $f.baseVoices; i = $f.i; i$1 = $f.i$1; result = $f.result; sounds = $f.sounds; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+		result = {};
+		_r = randomPoints(); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
+		basePoints = _r;
+		_r$1 = randomVoices(); /* */ $s = 2; case 2: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
+		baseVoices = _r$1;
+		sounds = $makeSlice(sliceType$6, 0);
+		_arg = sounds;
+		_r$2 = randomSoundSet(basePoints, baseVoices, 0); /* */ $s = 3; case 3: if($c) { $c = false; _r$2 = _r$2.$blk(); } if (_r$2 && _r$2.$blk !== undefined) { break s; }
+		_arg$1 = _r$2;
+		sounds = $appendSlice(_arg, _arg$1);
+		_arg$2 = sounds;
+		_r$3 = randomSoundSet(basePoints, baseVoices, 1); /* */ $s = 4; case 4: if($c) { $c = false; _r$3 = _r$3.$blk(); } if (_r$3 && _r$3.$blk !== undefined) { break s; }
+		_arg$3 = _r$3;
+		sounds = $appendSlice(_arg$2, _arg$3);
+		_arg$4 = sounds;
+		_r$4 = randomSoundSet(basePoints, baseVoices, 4); /* */ $s = 5; case 5: if($c) { $c = false; _r$4 = _r$4.$blk(); } if (_r$4 && _r$4.$blk !== undefined) { break s; }
+		_arg$5 = _r$4;
+		sounds = $appendSlice(_arg$4, _arg$5);
+		_r$5 = rand.Intn(10); /* */ $s = 8; case 8: if($c) { $c = false; _r$5 = _r$5.$blk(); } if (_r$5 && _r$5.$blk !== undefined) { break s; }
+		/* */ if (_r$5 < 2) { $s = 6; continue; }
+		/* */ $s = 7; continue;
+		/* if (_r$5 < 2) { */ case 6:
+			_arg$6 = sounds;
+			_r$6 = randomSoundSet(basePoints, baseVoices, 2); /* */ $s = 9; case 9: if($c) { $c = false; _r$6 = _r$6.$blk(); } if (_r$6 && _r$6.$blk !== undefined) { break s; }
+			_arg$7 = _r$6;
+			sounds = $appendSlice(_arg$6, _arg$7);
+		/* } */ case 7:
+		_r$7 = rand.Intn(10); /* */ $s = 12; case 12: if($c) { $c = false; _r$7 = _r$7.$blk(); } if (_r$7 && _r$7.$blk !== undefined) { break s; }
+		/* */ if (_r$7 < 2) { $s = 10; continue; }
+		/* */ $s = 11; continue;
+		/* if (_r$7 < 2) { */ case 10:
+			_arg$8 = sounds;
+			_r$8 = randomSoundSet(basePoints, baseVoices, 3); /* */ $s = 13; case 13: if($c) { $c = false; _r$8 = _r$8.$blk(); } if (_r$8 && _r$8.$blk !== undefined) { break s; }
+			_arg$9 = _r$8;
+			sounds = $appendSlice(_arg$8, _arg$9);
+		/* } */ case 11:
+		_r$9 = rand.Intn(10); /* */ $s = 16; case 16: if($c) { $c = false; _r$9 = _r$9.$blk(); } if (_r$9 && _r$9.$blk !== undefined) { break s; }
+		/* */ if (_r$9 < 2) { $s = 14; continue; }
+		/* */ $s = 15; continue;
+		/* if (_r$9 < 2) { */ case 14:
+			_arg$10 = sounds;
+			_r$10 = randomSoundSet(basePoints, baseVoices, 5); /* */ $s = 17; case 17: if($c) { $c = false; _r$10 = _r$10.$blk(); } if (_r$10 && _r$10.$blk !== undefined) { break s; }
+			_arg$11 = _r$10;
+			sounds = $appendSlice(_arg$10, _arg$11);
+		/* } */ case 15:
+		_arg$12 = sounds;
+		_r$11 = randomVocalSet(baseVoices); /* */ $s = 18; case 18: if($c) { $c = false; _r$11 = _r$11.$blk(); } if (_r$11 && _r$11.$blk !== undefined) { break s; }
+		_arg$13 = _r$11;
+		sounds = $appendSlice(_arg$12, _arg$13);
+		i = 0;
+		/* while (true) { */ case 19:
+			/* if (!(i < 10)) { break; } */ if(!(i < 10)) { $s = 20; continue; }
+			_r$12 = mutateSoundSet(sounds); /* */ $s = 21; case 21: if($c) { $c = false; _r$12 = _r$12.$blk(); } if (_r$12 && _r$12.$blk !== undefined) { break s; }
+			sounds = _r$12;
+			i = i + (1) >> 0;
+		/* } */ $s = 19; continue; case 20:
+		_ref = sounds;
+		_i = 0;
+		/* while (true) { */ case 22:
+			/* if (!(_i < _ref.$length)) { break; } */ if(!(_i < _ref.$length)) { $s = 23; continue; }
+			i$1 = _i;
+			((i$1 < 0 || i$1 >= sounds.$length) ? $throwRuntimeError("index out of range") : sounds.$array[sounds.$offset + i$1]).Standardise();
+			_r$13 = fmt.Sprint(new sliceType$7([new $Int(i$1)])); /* */ $s = 24; case 24: if($c) { $c = false; _r$13 = _r$13.$blk(); } if (_r$13 && _r$13.$blk !== undefined) { break s; }
+			_key = "s" + _r$13; (result || $throwRuntimeError("assignment to entry in nil map"))[$String.keyFor(_key)] = { k: _key, v: $clone(((i$1 < 0 || i$1 >= sounds.$length) ? $throwRuntimeError("index out of range") : sounds.$array[sounds.$offset + i$1]), Sound) };
+			_i++;
+		/* } */ $s = 22; continue; case 23:
+		$s = -1; return result;
+		return result;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: RandomPhoneticInventory }; } $f.$ptr = $ptr; $f._arg = _arg; $f._arg$1 = _arg$1; $f._arg$10 = _arg$10; $f._arg$11 = _arg$11; $f._arg$12 = _arg$12; $f._arg$13 = _arg$13; $f._arg$2 = _arg$2; $f._arg$3 = _arg$3; $f._arg$4 = _arg$4; $f._arg$5 = _arg$5; $f._arg$6 = _arg$6; $f._arg$7 = _arg$7; $f._arg$8 = _arg$8; $f._arg$9 = _arg$9; $f._i = _i; $f._key = _key; $f._r = _r; $f._r$1 = _r$1; $f._r$10 = _r$10; $f._r$11 = _r$11; $f._r$12 = _r$12; $f._r$13 = _r$13; $f._r$2 = _r$2; $f._r$3 = _r$3; $f._r$4 = _r$4; $f._r$5 = _r$5; $f._r$6 = _r$6; $f._r$7 = _r$7; $f._r$8 = _r$8; $f._r$9 = _r$9; $f._ref = _ref; $f.basePoints = basePoints; $f.baseVoices = baseVoices; $f.i = i; $f.i$1 = i$1; $f.result = result; $f.sounds = sounds; $f.$s = $s; $f.$r = $r; return $f;
+	};
+	$pkg.RandomPhoneticInventory = RandomPhoneticInventory;
+	RandomPhonetics = function() {
+		var $ptr, _r, phonetics, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; phonetics = $f.phonetics; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+		phonetics = new Phonetics.ptr(false, sliceType.nil);
+		_r = RandomPhoneticInventory(); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
+		phonetics.Sounds = _r;
+		phonetics.Patterns = BasicPatterns();
+		$s = -1; return phonetics;
+		return phonetics;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: RandomPhonetics }; } $f.$ptr = $ptr; $f._r = _r; $f.phonetics = phonetics; $f.$s = $s; $f.$r = $r; return $f;
+	};
+	$pkg.RandomPhonetics = RandomPhonetics;
+	randomPoints = function() {
+		var $ptr, _r, _r$1, difference, i, j, newPoint, pointCount, points, valid, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; _r$1 = $f._r$1; difference = $f.difference; i = $f.i; j = $f.j; newPoint = $f.newPoint; pointCount = $f.pointCount; points = $f.points; valid = $f.valid; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+		_r = rand.Intn(5); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
+		pointCount = _r + 1 >> 0;
+		points = $makeSlice(sliceType$2, pointCount);
+		i = 0;
+		/* while (true) { */ case 2:
+			/* if (!(i < pointCount)) { break; } */ if(!(i < pointCount)) { $s = 3; continue; }
+			_r$1 = semiRandomPoint(); /* */ $s = 4; case 4: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
+			newPoint = _r$1;
+			valid = true;
+			j = 0;
+			while (true) {
+				if (!(j < i)) { break; }
+				difference = newPoint - ((j < 0 || j >= points.$length) ? $throwRuntimeError("index out of range") : points.$array[points.$offset + j]) >> 0;
+				if (-2 < difference && difference < 2) {
+					valid = false;
+					break;
+				}
+				j = j + (1) >> 0;
+			}
+			if (valid) {
+				((i < 0 || i >= points.$length) ? $throwRuntimeError("index out of range") : points.$array[points.$offset + i] = newPoint);
+			} else {
+				i = i - (1) >> 0;
+			}
+			i = i + (1) >> 0;
+		/* } */ $s = 2; continue; case 3:
+		$s = -1; return points;
+		return points;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: randomPoints }; } $f.$ptr = $ptr; $f._r = _r; $f._r$1 = _r$1; $f.difference = difference; $f.i = i; $f.j = j; $f.newPoint = newPoint; $f.pointCount = pointCount; $f.points = points; $f.valid = valid; $f.$s = $s; $f.$r = $r; return $f;
+	};
+	semiRandomPoint = function() {
+		var $ptr, _r, _r$1, _r$2, _r$3, newPoint, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; _r$1 = $f._r$1; _r$2 = $f._r$2; _r$3 = $f._r$3; newPoint = $f.newPoint; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+		_r = rand.Intn(16); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
+		newPoint = (_r >> 0);
+		_r$1 = rand.Intn(10); /* */ $s = 6; case 6: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
+		/* */ if (_r$1 < 2) { $s = 2; continue; }
+		_r$2 = rand.Intn(10); /* */ $s = 7; case 7: if($c) { $c = false; _r$2 = _r$2.$blk(); } if (_r$2 && _r$2.$blk !== undefined) { break s; }
+		/* */ if (_r$2 < 2) { $s = 3; continue; }
+		_r$3 = rand.Intn(10); /* */ $s = 8; case 8: if($c) { $c = false; _r$3 = _r$3.$blk(); } if (_r$3 && _r$3.$blk !== undefined) { break s; }
+		/* */ if (_r$3 < 2) { $s = 4; continue; }
+		/* */ $s = 5; continue;
+		/* if (_r$1 < 2) { */ case 2:
+			newPoint = 4;
+			$s = 5; continue;
+		/* } else if (_r$2 < 2) { */ case 3:
+			newPoint = 0;
+			$s = 5; continue;
+		/* } else if (_r$3 < 2) { */ case 4:
+			newPoint = 10;
+		/* } */ case 5:
+		$s = -1; return newPoint;
+		return newPoint;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: semiRandomPoint }; } $f.$ptr = $ptr; $f._r = _r; $f._r$1 = _r$1; $f._r$2 = _r$2; $f._r$3 = _r$3; $f.newPoint = newPoint; $f.$s = $s; $f.$r = $r; return $f;
+	};
+	randomVoices = function() {
+		var $ptr, _r, _r$1, _r$2, _r$3, _r$4, voices, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; _r$1 = $f._r$1; _r$2 = $f._r$2; _r$3 = $f._r$3; _r$4 = $f._r$4; voices = $f.voices; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+		voices = $makeSlice(sliceType$5, 0);
+		_r = rand.Intn(10); /* */ $s = 3; case 3: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
+		/* */ if (_r < 2) { $s = 1; continue; }
+		/* */ $s = 2; continue;
+		/* if (_r < 2) { */ case 1:
+			voices = $append(voices, 2);
+		/* } */ case 2:
+		_r$1 = rand.Intn(10); /* */ $s = 6; case 6: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
+		/* */ if (_r$1 < 2) { $s = 4; continue; }
+		/* */ $s = 5; continue;
+		/* if (_r$1 < 2) { */ case 4:
+			voices = $append(voices, 4);
+		/* } */ case 5:
+		_r$2 = rand.Intn(2); /* */ $s = 10; case 10: if($c) { $c = false; _r$2 = _r$2.$blk(); } if (_r$2 && _r$2.$blk !== undefined) { break s; }
+		/* */ if (_r$2 === 0) { $s = 7; continue; }
+		/* */ $s = 8; continue;
+		/* if (_r$2 === 0) { */ case 7:
+			voices = $append(voices, 1);
+			_r$3 = rand.Intn(5); /* */ $s = 13; case 13: if($c) { $c = false; _r$3 = _r$3.$blk(); } if (_r$3 && _r$3.$blk !== undefined) { break s; }
+			/* */ if ((_r$3 - voices.$length >> 0) > 0) { $s = 11; continue; }
+			/* */ $s = 12; continue;
+			/* if ((_r$3 - voices.$length >> 0) > 0) { */ case 11:
+				voices = $append(voices, 3);
+			/* } */ case 12:
+			$s = 9; continue;
+		/* } else { */ case 8:
+			voices = $append(voices, 3);
+			_r$4 = rand.Intn(5); /* */ $s = 16; case 16: if($c) { $c = false; _r$4 = _r$4.$blk(); } if (_r$4 && _r$4.$blk !== undefined) { break s; }
+			/* */ if ((_r$4 - voices.$length >> 0) > 0) { $s = 14; continue; }
+			/* */ $s = 15; continue;
+			/* if ((_r$4 - voices.$length >> 0) > 0) { */ case 14:
+				voices = $append(voices, 1);
+			/* } */ case 15:
+		/* } */ case 9:
+		$s = -1; return voices;
+		return voices;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: randomVoices }; } $f.$ptr = $ptr; $f._r = _r; $f._r$1 = _r$1; $f._r$2 = _r$2; $f._r$3 = _r$3; $f._r$4 = _r$4; $f.voices = voices; $f.$s = $s; $f.$r = $r; return $f;
+	};
+	chooseRandomVoices = function(voices) {
+		var $ptr, _i, _r, _r$1, _ref, chosenVoices, voice, voices, x, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _i = $f._i; _r = $f._r; _r$1 = $f._r$1; _ref = $f._ref; chosenVoices = $f.chosenVoices; voice = $f.voice; voices = $f.voices; x = $f.x; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+		chosenVoices = $makeSlice(sliceType$5, 0);
+		_ref = voices;
+		_i = 0;
+		/* while (true) { */ case 1:
+			/* if (!(_i < _ref.$length)) { break; } */ if(!(_i < _ref.$length)) { $s = 2; continue; }
+			voice = ((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]);
+			_r = rand.Intn(2); /* */ $s = 5; case 5: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
+			/* */ if (_r === 0) { $s = 3; continue; }
+			/* */ $s = 4; continue;
+			/* if (_r === 0) { */ case 3:
+				chosenVoices = $append(chosenVoices, voice);
+			/* } */ case 4:
+			_i++;
+		/* } */ $s = 1; continue; case 2:
+		/* */ if (chosenVoices.$length === 0) { $s = 6; continue; }
+		/* */ $s = 7; continue;
+		/* if (chosenVoices.$length === 0) { */ case 6:
+			_r$1 = rand.Intn(voices.$length); /* */ $s = 8; case 8: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
+			chosenVoices = $append(chosenVoices, (x = _r$1, ((x < 0 || x >= voices.$length) ? $throwRuntimeError("index out of range") : voices.$array[voices.$offset + x])));
+		/* } */ case 7:
+		$s = -1; return chosenVoices;
+		return chosenVoices;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: chooseRandomVoices }; } $f.$ptr = $ptr; $f._i = _i; $f._r = _r; $f._r$1 = _r$1; $f._ref = _ref; $f.chosenVoices = chosenVoices; $f.voice = voice; $f.voices = voices; $f.x = x; $f.$s = $s; $f.$r = $r; return $f;
+	};
+	randomSoundSet = function(points, voices, manner) {
+		var $ptr, _r, _r$1, chosenVoices, i, j, manner, nasal, points, rounded, shape, sound, sounds, voices, x, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; _r$1 = $f._r$1; chosenVoices = $f.chosenVoices; i = $f.i; j = $f.j; manner = $f.manner; nasal = $f.nasal; points = $f.points; rounded = $f.rounded; shape = $f.shape; sound = $f.sound; sounds = $f.sounds; voices = $f.voices; x = $f.x; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+		_r = chooseRandomVoices(voices); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
+		chosenVoices = _r;
+		sounds = $makeSlice(sliceType$6, ($imul(chosenVoices.$length, points.$length)));
+		_r$1 = rand.Intn(3); /* */ $s = 2; case 2: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
+		shape = (_r$1 >> 0);
+		nasal = false;
+		if (manner === 0) {
+			nasal = true;
+		}
+		rounded = false;
+		i = 0;
+		while (true) {
+			if (!(i < chosenVoices.$length)) { break; }
+			j = 0;
+			while (true) {
+				if (!(j < points.$length)) { break; }
+				sound = new Sound.ptr(((j < 0 || j >= points.$length) ? $throwRuntimeError("index out of range") : points.$array[points.$offset + j]), manner, shape, rounded, nasal, ((i < 0 || i >= chosenVoices.$length) ? $throwRuntimeError("index out of range") : chosenVoices.$array[chosenVoices.$offset + i]));
+				Sound.copy((x = ($imul(i, points.$length)) + j >> 0, ((x < 0 || x >= sounds.$length) ? $throwRuntimeError("index out of range") : sounds.$array[sounds.$offset + x])), sound);
+				j = j + (1) >> 0;
+			}
+			i = i + (1) >> 0;
+		}
+		$s = -1; return sounds;
+		return sounds;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: randomSoundSet }; } $f.$ptr = $ptr; $f._r = _r; $f._r$1 = _r$1; $f.chosenVoices = chosenVoices; $f.i = i; $f.j = j; $f.manner = manner; $f.nasal = nasal; $f.points = points; $f.rounded = rounded; $f.shape = shape; $f.sound = sound; $f.sounds = sounds; $f.voices = voices; $f.x = x; $f.$s = $s; $f.$r = $r; return $f;
+	};
+	randomVocalSet = function(voices) {
+		var $ptr, _i, _i$1, _r, _r$1, _r$2, _r$3, _r$4, _r$5, _ref, _ref$1, chosenVoices, i, sounds, voice, voice$1, voices, x, x$1, x$2, x$3, x$4, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _i = $f._i; _i$1 = $f._i$1; _r = $f._r; _r$1 = $f._r$1; _r$2 = $f._r$2; _r$3 = $f._r$3; _r$4 = $f._r$4; _r$5 = $f._r$5; _ref = $f._ref; _ref$1 = $f._ref$1; chosenVoices = $f.chosenVoices; i = $f.i; sounds = $f.sounds; voice = $f.voice; voice$1 = $f.voice$1; voices = $f.voices; x = $f.x; x$1 = $f.x$1; x$2 = $f.x$2; x$3 = $f.x$3; x$4 = $f.x$4; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+		chosenVoices = $makeSlice(sliceType$5, 1);
+		(0 >= chosenVoices.$length ? $throwRuntimeError("index out of range") : chosenVoices.$array[chosenVoices.$offset + 0] = 3);
+		_ref = voices;
+		_i = 0;
+		/* while (true) { */ case 1:
+			/* if (!(_i < _ref.$length)) { break; } */ if(!(_i < _ref.$length)) { $s = 2; continue; }
+			voice = ((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]);
+			_r = rand.Intn(2); /* */ $s = 5; case 5: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
+			/* */ if ((_r === 0) && ((voice === 2) || (voice === 4))) { $s = 3; continue; }
+			/* */ $s = 4; continue;
+			/* if ((_r === 0) && ((voice === 2) || (voice === 4))) { */ case 3:
+				chosenVoices = $append(chosenVoices, voice);
+			/* } */ case 4:
+			_i++;
+		/* } */ $s = 1; continue; case 2:
+		sounds = $makeSlice(sliceType$6, ($imul(5, chosenVoices.$length)));
+		_ref$1 = chosenVoices;
+		_i$1 = 0;
+		/* while (true) { */ case 6:
+			/* if (!(_i$1 < _ref$1.$length)) { break; } */ if(!(_i$1 < _ref$1.$length)) { $s = 7; continue; }
+			i = _i$1;
+			voice$1 = ((_i$1 < 0 || _i$1 >= _ref$1.$length) ? $throwRuntimeError("index out of range") : _ref$1.$array[_ref$1.$offset + _i$1]);
+			_r$1 = rand.Intn(4); /* */ $s = 8; case 8: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
+			Sound.copy((x = $imul(i, 5), ((x < 0 || x >= sounds.$length) ? $throwRuntimeError("index out of range") : sounds.$array[sounds.$offset + x])), new Sound.ptr(8, 6, 0, _r$1 === 0, false, voice$1));
+			_r$2 = rand.Intn(4); /* */ $s = 9; case 9: if($c) { $c = false; _r$2 = _r$2.$blk(); } if (_r$2 && _r$2.$blk !== undefined) { break s; }
+			Sound.copy((x$1 = ($imul(i, 5)) + 1 >> 0, ((x$1 < 0 || x$1 >= sounds.$length) ? $throwRuntimeError("index out of range") : sounds.$array[sounds.$offset + x$1])), new Sound.ptr(9, 9, 0, _r$2 === 0, false, voice$1));
+			_r$3 = rand.Intn(4); /* */ $s = 10; case 10: if($c) { $c = false; _r$3 = _r$3.$blk(); } if (_r$3 && _r$3.$blk !== undefined) { break s; }
+			Sound.copy((x$2 = ($imul(i, 5)) + 2 >> 0, ((x$2 < 0 || x$2 >= sounds.$length) ? $throwRuntimeError("index out of range") : sounds.$array[sounds.$offset + x$2])), new Sound.ptr(10, 12, 0, _r$3 === 0, false, voice$1));
+			_r$4 = rand.Intn(4); /* */ $s = 11; case 11: if($c) { $c = false; _r$4 = _r$4.$blk(); } if (_r$4 && _r$4.$blk !== undefined) { break s; }
+			Sound.copy((x$3 = ($imul(i, 5)) + 3 >> 0, ((x$3 < 0 || x$3 >= sounds.$length) ? $throwRuntimeError("index out of range") : sounds.$array[sounds.$offset + x$3])), new Sound.ptr(11, 9, 0, _r$4 === 0, false, voice$1));
+			_r$5 = rand.Intn(4); /* */ $s = 12; case 12: if($c) { $c = false; _r$5 = _r$5.$blk(); } if (_r$5 && _r$5.$blk !== undefined) { break s; }
+			Sound.copy((x$4 = ($imul(i, 5)) + 4 >> 0, ((x$4 < 0 || x$4 >= sounds.$length) ? $throwRuntimeError("index out of range") : sounds.$array[sounds.$offset + x$4])), new Sound.ptr(12, 6, 0, _r$5 === 0, false, voice$1));
+			_i$1++;
+		/* } */ $s = 6; continue; case 7:
+		$s = -1; return sounds;
+		return sounds;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: randomVocalSet }; } $f.$ptr = $ptr; $f._i = _i; $f._i$1 = _i$1; $f._r = _r; $f._r$1 = _r$1; $f._r$2 = _r$2; $f._r$3 = _r$3; $f._r$4 = _r$4; $f._r$5 = _r$5; $f._ref = _ref; $f._ref$1 = _ref$1; $f.chosenVoices = chosenVoices; $f.i = i; $f.sounds = sounds; $f.voice = voice; $f.voice$1 = voice$1; $f.voices = voices; $f.x = x; $f.x$1 = x$1; $f.x$2 = x$2; $f.x$3 = x$3; $f.x$4 = x$4; $f.$s = $s; $f.$r = $r; return $f;
+	};
+	mutateSoundSet = function(sounds) {
+		var $ptr, _r, _r$1, _r$2, _r$3, _r$4, _r$5, change, change$1, index, sound, sounds, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; _r$1 = $f._r$1; _r$2 = $f._r$2; _r$3 = $f._r$3; _r$4 = $f._r$4; _r$5 = $f._r$5; change = $f.change; change$1 = $f.change$1; index = $f.index; sound = $f.sound; sounds = $f.sounds; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+		_r = rand.Intn(sounds.$length); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
+		index = _r;
+		_r$1 = rand.Intn(2); /* */ $s = 4; case 4: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
+		/* */ if (_r$1 === 0) { $s = 2; continue; }
+		/* */ $s = 3; continue;
+		/* if (_r$1 === 0) { */ case 2:
+			$s = -1; return $appendSlice($subslice(sounds, 0, index), $subslice(sounds, (index + 1 >> 0)));
+			return $appendSlice($subslice(sounds, 0, index), $subslice(sounds, (index + 1 >> 0)));
+		/* } */ case 3:
+		sound = $clone(((index < 0 || index >= sounds.$length) ? $throwRuntimeError("index out of range") : sounds.$array[sounds.$offset + index]), Sound);
+		_r$2 = rand.Intn(2); /* */ $s = 7; case 7: if($c) { $c = false; _r$2 = _r$2.$blk(); } if (_r$2 && _r$2.$blk !== undefined) { break s; }
+		/* */ if (_r$2 === 0) { $s = 5; continue; }
+		/* */ $s = 6; continue;
+		/* if (_r$2 === 0) { */ case 5:
+			_r$3 = rand.Intn(2); /* */ $s = 8; case 8: if($c) { $c = false; _r$3 = _r$3.$blk(); } if (_r$3 && _r$3.$blk !== undefined) { break s; }
+			change = ((($imul(_r$3, 2)) - 1 >> 0) >> 0);
+			sound.Manner = sound.Manner + change >> 0;
+			if (sound.Manner === 13) {
+				sound.Manner = sound.Manner - ($imul(change, 2)) >> 0;
+			}
+		/* } */ case 6:
+		_r$4 = rand.Intn(2); /* */ $s = 11; case 11: if($c) { $c = false; _r$4 = _r$4.$blk(); } if (_r$4 && _r$4.$blk !== undefined) { break s; }
+		/* */ if (_r$4 === 0) { $s = 9; continue; }
+		/* */ $s = 10; continue;
+		/* if (_r$4 === 0) { */ case 9:
+			_r$5 = rand.Intn(2); /* */ $s = 12; case 12: if($c) { $c = false; _r$5 = _r$5.$blk(); } if (_r$5 && _r$5.$blk !== undefined) { break s; }
+			change$1 = ((($imul(_r$5, 2)) - 1 >> 0) >> 0);
+			sound.Point = sound.Point + change$1 >> 0;
+			if (sound.Point === 16) {
+				sound.Point = sound.Point - ($imul(change$1, 2)) >> 0;
+			}
+		/* } */ case 10:
+		$s = -1; return $append(sounds, sound);
+		return $append(sounds, sound);
+		/* */ } return; } if ($f === undefined) { $f = { $blk: mutateSoundSet }; } $f.$ptr = $ptr; $f._r = _r; $f._r$1 = _r$1; $f._r$2 = _r$2; $f._r$3 = _r$3; $f._r$4 = _r$4; $f._r$5 = _r$5; $f.change = change; $f.change$1 = change$1; $f.index = index; $f.sound = sound; $f.sounds = sounds; $f.$s = $s; $f.$r = $r; return $f;
+	};
+	Sound.ptr.prototype.IsValid = function() {
+		var $ptr, _1, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _2, _20, _3, _4, _5, _6, _7, _8, _9, sound;
+		sound = this;
+		if (sound.Rounded) {
+			_1 = sound.Point;
+			if ((_1 === (0)) || (_1 === (1)) || (_1 === (2))) {
+				return false;
+			}
+		}
+		if (sound.Voice === 1) {
+			_2 = sound.Manner;
+			if ((_2 === (6)) || (_2 === (7)) || (_2 === (8)) || (_2 === (9)) || (_2 === (10)) || (_2 === (11)) || (_2 === (12))) {
+				return false;
+			}
+		}
+		if (sound.Voice === 0) {
+			switch (0) { default:
+				_3 = sound.Manner;
+				if (_3 === (1)) {
+					break;
+				} else {
+					return false;
+				}
+			}
+		}
+		if ((sound.Manner === 0) && !sound.Nasal) {
+			return false;
+		}
+		_4 = sound.Point;
+		if (_4 === (0)) {
+			_5 = sound.Manner;
+			if ((_5 === (0)) || (_5 === (1)) || (_5 === (2)) || (_5 === (3)) || (_5 === (4)) || (_5 === (5))) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (_4 === (1)) {
+			_6 = sound.Manner;
+			if ((_6 === (0)) || (_6 === (1)) || (_6 === (2)) || (_6 === (3)) || (_6 === (4)) || (_6 === (5))) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (_4 === (2)) {
+			_7 = sound.Manner;
+			if ((_7 === (0)) || (_7 === (1)) || (_7 === (2)) || (_7 === (3)) || (_7 === (4)) || (_7 === (5))) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (_4 === (3)) {
+			_8 = sound.Manner;
+			if ((_8 === (0)) || (_8 === (1)) || (_8 === (2)) || (_8 === (3)) || (_8 === (4)) || (_8 === (5))) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (_4 === (4)) {
+			_9 = sound.Manner;
+			if ((_9 === (0)) || (_9 === (1)) || (_9 === (2)) || (_9 === (3)) || (_9 === (4)) || (_9 === (5))) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (_4 === (5)) {
+			_10 = sound.Manner;
+			if ((_10 === (0)) || (_10 === (1)) || (_10 === (2)) || (_10 === (3)) || (_10 === (4)) || (_10 === (5))) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (_4 === (6)) {
+			_11 = sound.Manner;
+			if ((_11 === (0)) || (_11 === (1)) || (_11 === (2)) || (_11 === (3)) || (_11 === (4)) || (_11 === (5))) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (_4 === (7)) {
+			_12 = sound.Manner;
+			if ((_12 === (0)) || (_12 === (1)) || (_12 === (4)) || (_12 === (5))) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (_4 === (8)) {
+			_13 = sound.Manner;
+			if ((_13 === (0)) || (_13 === (1)) || (_13 === (4)) || (_13 === (5)) || (_13 === (6)) || (_13 === (7)) || (_13 === (8)) || (_13 === (9)) || (_13 === (10)) || (_13 === (11)) || (_13 === (12))) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (_4 === (9)) {
+			_14 = sound.Manner;
+			if ((_14 === (0)) || (_14 === (1)) || (_14 === (4)) || (_14 === (5)) || (_14 === (6)) || (_14 === (7)) || (_14 === (8)) || (_14 === (9)) || (_14 === (10)) || (_14 === (11)) || (_14 === (12))) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (_4 === (10)) {
+			_15 = sound.Manner;
+			if ((_15 === (0)) || (_15 === (1)) || (_15 === (4)) || (_15 === (5)) || (_15 === (6)) || (_15 === (7)) || (_15 === (8)) || (_15 === (9)) || (_15 === (10)) || (_15 === (11)) || (_15 === (12))) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (_4 === (11)) {
+			_16 = sound.Manner;
+			if ((_16 === (0)) || (_16 === (1)) || (_16 === (4)) || (_16 === (5)) || (_16 === (6)) || (_16 === (7)) || (_16 === (8)) || (_16 === (9)) || (_16 === (10)) || (_16 === (11)) || (_16 === (12))) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (_4 === (12)) {
+			_17 = sound.Manner;
+			if ((_17 === (0)) || (_17 === (1)) || (_17 === (2)) || (_17 === (3)) || (_17 === (4)) || (_17 === (5)) || (_17 === (6)) || (_17 === (7)) || (_17 === (8)) || (_17 === (9)) || (_17 === (10)) || (_17 === (11)) || (_17 === (12))) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (_4 === (13)) {
+			_18 = sound.Manner;
+			if ((_18 === (1)) || (_18 === (2)) || (_18 === (3)) || (_18 === (4)) || (_18 === (5))) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (_4 === (14)) {
+			_19 = sound.Manner;
+			if ((_19 === (1)) || (_19 === (2)) || (_19 === (3)) || (_19 === (4)) || (_19 === (5))) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (_4 === (15)) {
+			_20 = sound.Manner;
+			if ((_20 === (1)) || (_20 === (4))) {
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			$panic(new $String("Weird"));
+		}
+	};
+	Sound.prototype.IsValid = function() { return this.$val.IsValid(); };
+	Sound.ptr.prototype.Standardise = function() {
+		var $ptr, _1, _2, _3, _4, _5, _6, sound;
+		sound = this;
+		if (sound.Shape === 2) {
+			_1 = sound.Manner;
+			if ((_1 === (0)) || (_1 === (1)) || (_1 === (2)) || (_1 === (3)) || (_1 === (6)) || (_1 === (7)) || (_1 === (8)) || (_1 === (9)) || (_1 === (10)) || (_1 === (11)) || (_1 === (12))) {
+				sound.Shape = 0;
+			}
+			_2 = sound.Point;
+			if ((_2 === (0)) || (_2 === (1)) || (_2 === (2)) || (_2 === (8)) || (_2 === (9)) || (_2 === (10)) || (_2 === (11)) || (_2 === (12)) || (_2 === (13)) || (_2 === (14)) || (_2 === (15))) {
+				sound.Shape = 0;
+			}
+		}
+		if (sound.Shape === 1) {
+			_3 = sound.Manner;
+			if ((_3 === (0)) || (_3 === (1)) || (_3 === (3)) || (_3 === (6)) || (_3 === (7)) || (_3 === (8)) || (_3 === (9)) || (_3 === (10)) || (_3 === (11)) || (_3 === (12))) {
+				sound.Shape = 0;
+			}
+			_4 = sound.Point;
+			if ((_4 === (0)) || (_4 === (1)) || (_4 === (13)) || (_4 === (14)) || (_4 === (15))) {
+				sound.Shape = 0;
+			}
+		}
+		if (sound.Point === 9) {
+			_5 = sound.Manner;
+			if ((_5 === (0)) || (_5 === (1)) || (_5 === (2)) || (_5 === (3)) || (_5 === (4)) || (_5 === (5))) {
+				sound.Point = 8;
+			}
+		}
+		if (sound.Point === 11) {
+			_6 = sound.Manner;
+			if ((_6 === (0)) || (_6 === (1)) || (_6 === (2)) || (_6 === (3)) || (_6 === (4)) || (_6 === (5))) {
+				sound.Point = 12;
+			}
+		}
+	};
+	Sound.prototype.Standardise = function() { return this.$val.Standardise(); };
+	Distance = function(soundA, soundB) {
+		var $ptr, distance, mannerDistance, pointDistance, shapeDistance, soundA, soundB, voiceDistance;
+		soundB = $clone(soundB, Sound);
+		soundA = $clone(soundA, Sound);
+		distance = 0;
+		mannerDistance = $imul(((soundA.Manner - soundB.Manner >> 0) >> 0), 2);
+		if (!(soundA.Nasal === soundB.Nasal)) {
+			mannerDistance = mannerDistance + (6) >> 0;
+		}
+		if (mannerDistance < 0) {
+			mannerDistance = -mannerDistance;
+		}
+		pointDistance = ((soundA.Point - soundB.Point >> 0) >> 0);
+		if (pointDistance < 0) {
+			pointDistance = -pointDistance;
+		}
+		voiceDistance = ((soundA.Voice - soundB.Voice >> 0) >> 0);
+		if (voiceDistance < 0) {
+			voiceDistance = -voiceDistance;
+		}
+		shapeDistance = ((soundA.Shape - soundB.Shape >> 0) >> 0);
+		if (shapeDistance < 0) {
+			shapeDistance = -shapeDistance;
+		}
+		distance = ((mannerDistance + pointDistance >> 0) + voiceDistance >> 0) + shapeDistance >> 0;
+		if (!(soundA.Rounded === soundB.Rounded)) {
+			distance = distance + (1) >> 0;
+		}
+		return distance;
+	};
+	$pkg.Distance = Distance;
+	Sound.ptr.prototype.Encode = function() {
+		var $ptr, enc, sound, value;
+		sound = this;
+		enc = (sound.Point >> 0);
+		enc = enc + (($imul(16, (sound.Manner >> 0)))) >> 0;
+		enc = enc + (($imul(208, (sound.Shape >> 0)))) >> 0;
+		enc = enc + (($imul(624, (sound.Voice >> 0)))) >> 0;
+		value = 0;
+		if (sound.Rounded) {
+			value = 1;
+		}
+		enc = enc + (($imul(3120, value))) >> 0;
+		value = 0;
+		if (sound.Nasal) {
+			value = 1;
+		}
+		enc = enc + (($imul(6240, value))) >> 0;
+		return enc;
+	};
+	Sound.prototype.Encode = function() { return this.$val.Encode(); };
+	SoundPattern.ptr.prototype.Fits = function(sound) {
+		var $ptr, pattern, sound;
+		sound = $clone(sound, Sound);
+		pattern = this;
+		if (!(pattern.Points === sliceType$2.nil) && !containsPoint(pattern.Points, sound.Point)) {
+			return false;
+		}
+		if (!(pattern.Manners === sliceType$3.nil) && !containsManner(pattern.Manners, sound.Manner)) {
+			return false;
+		}
+		if (!(pattern.Shapes === sliceType$4.nil) && !containsShape(pattern.Shapes, sound.Shape)) {
+			return false;
+		}
+		if (!(pattern.Voices === sliceType$5.nil) && !containsVoice(pattern.Voices, sound.Voice)) {
+			return false;
+		}
+		if (!((pattern.Rounded === 0)) && !(new TristateBool(pattern.Rounded).ToBool() === sound.Rounded)) {
+			return false;
+		}
+		if (!((pattern.Nasal === 0)) && !(new TristateBool(pattern.Nasal).ToBool() === sound.Nasal)) {
+			return false;
+		}
+		return true;
+	};
+	SoundPattern.prototype.Fits = function(sound) { return this.$val.Fits(sound); };
+	containsPoint = function(s, e) {
+		var $ptr, _i, _ref, a, e, s;
+		_ref = s;
+		_i = 0;
+		while (true) {
+			if (!(_i < _ref.$length)) { break; }
+			a = ((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]);
+			if (a === e) {
+				return true;
+			}
+			_i++;
+		}
+		return false;
+	};
+	containsManner = function(s, e) {
+		var $ptr, _i, _ref, a, e, s;
+		_ref = s;
+		_i = 0;
+		while (true) {
+			if (!(_i < _ref.$length)) { break; }
+			a = ((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]);
+			if (a === e) {
+				return true;
+			}
+			_i++;
+		}
+		return false;
+	};
+	containsShape = function(s, e) {
+		var $ptr, _i, _ref, a, e, s;
+		_ref = s;
+		_i = 0;
+		while (true) {
+			if (!(_i < _ref.$length)) { break; }
+			a = ((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]);
+			if (a === e) {
+				return true;
+			}
+			_i++;
+		}
+		return false;
+	};
+	containsVoice = function(s, e) {
+		var $ptr, _i, _ref, a, e, s;
+		_ref = s;
+		_i = 0;
+		while (true) {
+			if (!(_i < _ref.$length)) { break; }
+			a = ((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]);
+			if (a === e) {
+				return true;
+			}
+			_i++;
+		}
+		return false;
+	};
+	TristateBool.prototype.ToBool = function() {
+		var $ptr, tristate;
+		tristate = this.$val;
+		if (tristate === 2) {
+			return true;
+		}
+		return false;
+	};
+	$ptrType(TristateBool).prototype.ToBool = function() { return new TristateBool(this.$get()).ToBool(); };
+	RandomSyllable = function(phonetics) {
+		var $ptr, _i, _i$1, _i$2, _r, _r$1, _r$2, _r$3, _r$4, _r$5, _r$6, _ref, _ref$1, _ref$2, iterations, pattern, phonetics, sp, sp$1, sp$2, syllable, x, x$1, x$2, x$3, x$4, x$5, x$6, x$7, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _i = $f._i; _i$1 = $f._i$1; _i$2 = $f._i$2; _r = $f._r; _r$1 = $f._r$1; _r$2 = $f._r$2; _r$3 = $f._r$3; _r$4 = $f._r$4; _r$5 = $f._r$5; _r$6 = $f._r$6; _ref = $f._ref; _ref$1 = $f._ref$1; _ref$2 = $f._ref$2; iterations = $f.iterations; pattern = $f.pattern; phonetics = $f.phonetics; sp = $f.sp; sp$1 = $f.sp$1; sp$2 = $f.sp$2; syllable = $f.syllable; x = $f.x; x$1 = $f.x$1; x$2 = $f.x$2; x$3 = $f.x$3; x$4 = $f.x$4; x$5 = $f.x$5; x$6 = $f.x$6; x$7 = $f.x$7; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+		syllable = new Syllable.ptr($makeSlice(sliceType$6, 0), $makeSlice(sliceType$6, 0), $makeSlice(sliceType$6, 0));
+		iterations = 0;
+		_r = rand.Intn(phonetics.Patterns.$length); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
+		pattern = $clone((x = phonetics.Patterns, x$1 = _r, ((x$1 < 0 || x$1 >= x.$length) ? $throwRuntimeError("index out of range") : x.$array[x.$offset + x$1])), SyllablePattern);
+		/* while (true) { */ case 2:
+			/* if (!(pattern.NucleusPatterns === sliceType$1.nil)) { break; } */ if(!(pattern.NucleusPatterns === sliceType$1.nil)) { $s = 3; continue; }
+			_r$1 = rand.Intn(phonetics.Patterns.$length); /* */ $s = 4; case 4: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
+			SyllablePattern.copy(pattern, (x$2 = phonetics.Patterns, x$3 = _r$1, ((x$3 < 0 || x$3 >= x$2.$length) ? $throwRuntimeError("index out of range") : x$2.$array[x$2.$offset + x$3])));
+		/* } */ $s = 2; continue; case 3:
+		_ref = pattern.NucleusPatterns;
+		_i = 0;
+		/* while (true) { */ case 5:
+			/* if (!(_i < _ref.$length)) { break; } */ if(!(_i < _ref.$length)) { $s = 6; continue; }
+			sp = $clone(((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]), SoundPattern);
+			_r$2 = getSound(phonetics, sp); /* */ $s = 7; case 7: if($c) { $c = false; _r$2 = _r$2.$blk(); } if (_r$2 && _r$2.$blk !== undefined) { break s; }
+			syllable.NucleusCluster = $append(syllable.NucleusCluster, _r$2);
+			_i++;
+		/* } */ $s = 5; continue; case 6:
+		iterations = 0;
+		/* while (true) { */ case 8:
+			/* if (!(iterations < 4 && pattern.OnsetPatterns === sliceType$1.nil)) { break; } */ if(!(iterations < 4 && pattern.OnsetPatterns === sliceType$1.nil)) { $s = 9; continue; }
+			_r$3 = rand.Intn(phonetics.Patterns.$length); /* */ $s = 10; case 10: if($c) { $c = false; _r$3 = _r$3.$blk(); } if (_r$3 && _r$3.$blk !== undefined) { break s; }
+			SyllablePattern.copy(pattern, (x$4 = phonetics.Patterns, x$5 = _r$3, ((x$5 < 0 || x$5 >= x$4.$length) ? $throwRuntimeError("index out of range") : x$4.$array[x$4.$offset + x$5])));
+			iterations = iterations + (1) >> 0;
+		/* } */ $s = 8; continue; case 9:
+		/* */ if (!(pattern.OnsetPatterns === sliceType$1.nil)) { $s = 11; continue; }
+		/* */ $s = 12; continue;
+		/* if (!(pattern.OnsetPatterns === sliceType$1.nil)) { */ case 11:
+			_ref$1 = pattern.OnsetPatterns;
+			_i$1 = 0;
+			/* while (true) { */ case 13:
+				/* if (!(_i$1 < _ref$1.$length)) { break; } */ if(!(_i$1 < _ref$1.$length)) { $s = 14; continue; }
+				sp$1 = $clone(((_i$1 < 0 || _i$1 >= _ref$1.$length) ? $throwRuntimeError("index out of range") : _ref$1.$array[_ref$1.$offset + _i$1]), SoundPattern);
+				_r$4 = getSound(phonetics, sp$1); /* */ $s = 15; case 15: if($c) { $c = false; _r$4 = _r$4.$blk(); } if (_r$4 && _r$4.$blk !== undefined) { break s; }
+				syllable.OnsetCluster = $append(syllable.OnsetCluster, _r$4);
+				_i$1++;
+			/* } */ $s = 13; continue; case 14:
+		/* } */ case 12:
+		iterations = 0;
+		/* while (true) { */ case 16:
+			/* if (!(iterations < 4 && pattern.CodaPatterns === sliceType$1.nil)) { break; } */ if(!(iterations < 4 && pattern.CodaPatterns === sliceType$1.nil)) { $s = 17; continue; }
+			_r$5 = rand.Intn(phonetics.Patterns.$length); /* */ $s = 18; case 18: if($c) { $c = false; _r$5 = _r$5.$blk(); } if (_r$5 && _r$5.$blk !== undefined) { break s; }
+			SyllablePattern.copy(pattern, (x$6 = phonetics.Patterns, x$7 = _r$5, ((x$7 < 0 || x$7 >= x$6.$length) ? $throwRuntimeError("index out of range") : x$6.$array[x$6.$offset + x$7])));
+			iterations = iterations + (1) >> 0;
+		/* } */ $s = 16; continue; case 17:
+		/* */ if (!(pattern.CodaPatterns === sliceType$1.nil)) { $s = 19; continue; }
+		/* */ $s = 20; continue;
+		/* if (!(pattern.CodaPatterns === sliceType$1.nil)) { */ case 19:
+			_ref$2 = pattern.CodaPatterns;
+			_i$2 = 0;
+			/* while (true) { */ case 21:
+				/* if (!(_i$2 < _ref$2.$length)) { break; } */ if(!(_i$2 < _ref$2.$length)) { $s = 22; continue; }
+				sp$2 = $clone(((_i$2 < 0 || _i$2 >= _ref$2.$length) ? $throwRuntimeError("index out of range") : _ref$2.$array[_ref$2.$offset + _i$2]), SoundPattern);
+				_r$6 = getSound(phonetics, sp$2); /* */ $s = 23; case 23: if($c) { $c = false; _r$6 = _r$6.$blk(); } if (_r$6 && _r$6.$blk !== undefined) { break s; }
+				syllable.CodaCluster = $append(syllable.CodaCluster, _r$6);
+				_i$2++;
+			/* } */ $s = 21; continue; case 22:
+		/* } */ case 20:
+		$s = -1; return syllable;
+		return syllable;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: RandomSyllable }; } $f.$ptr = $ptr; $f._i = _i; $f._i$1 = _i$1; $f._i$2 = _i$2; $f._r = _r; $f._r$1 = _r$1; $f._r$2 = _r$2; $f._r$3 = _r$3; $f._r$4 = _r$4; $f._r$5 = _r$5; $f._r$6 = _r$6; $f._ref = _ref; $f._ref$1 = _ref$1; $f._ref$2 = _ref$2; $f.iterations = iterations; $f.pattern = pattern; $f.phonetics = phonetics; $f.sp = sp; $f.sp$1 = sp$1; $f.sp$2 = sp$2; $f.syllable = syllable; $f.x = x; $f.x$1 = x$1; $f.x$2 = x$2; $f.x$3 = x$3; $f.x$4 = x$4; $f.x$5 = x$5; $f.x$6 = x$6; $f.x$7 = x$7; $f.$s = $s; $f.$r = $r; return $f;
+	};
+	$pkg.RandomSyllable = RandomSyllable;
+	getSound = function(phonetics, sp) {
+		var $ptr, _r, _r$1, _r$2, _tuple, _tuple$1, iterations, ok, phonetics, sound, sp, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; _r$1 = $f._r$1; _r$2 = $f._r$2; _tuple = $f._tuple; _tuple$1 = $f._tuple$1; iterations = $f.iterations; ok = $f.ok; phonetics = $f.phonetics; sound = $f.sound; sp = $f.sp; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+		sp = $clone(sp, SoundPattern);
+		_r = getRandomSound(phonetics); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
+		_tuple = _r;
+		sound = $clone(_tuple[0], Sound);
+		ok = _tuple[1];
+		if (!ok) {
+			$s = -1; return new Sound.ptr(0, 0, 0, false, false, 0);
+			return new Sound.ptr(0, 0, 0, false, false, 0);
+		}
+		iterations = 0;
+		/* while (true) { */ case 2:
+			/* if (!(!sp.Fits(sound))) { break; } */ if(!(!sp.Fits(sound))) { $s = 3; continue; }
+			iterations = iterations + (1) >> 0;
+			/* */ if (iterations > 1000) { $s = 4; continue; }
+			/* */ $s = 5; continue;
+			/* if (iterations > 1000) { */ case 4:
+				_r$1 = fmt.Sprint(new sliceType$7([new sp.constructor.elem(sp)])); /* */ $s = 6; case 6: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
+				$panic(new $String("Too many loops! Check your patterns." + _r$1));
+			/* } */ case 5:
+			_r$2 = getRandomSound(phonetics); /* */ $s = 7; case 7: if($c) { $c = false; _r$2 = _r$2.$blk(); } if (_r$2 && _r$2.$blk !== undefined) { break s; }
+			_tuple$1 = _r$2;
+			Sound.copy(sound, _tuple$1[0]);
+			ok = _tuple$1[1];
+		/* } */ $s = 2; continue; case 3:
+		$s = -1; return sound;
+		return sound;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: getSound }; } $f.$ptr = $ptr; $f._r = _r; $f._r$1 = _r$1; $f._r$2 = _r$2; $f._tuple = _tuple; $f._tuple$1 = _tuple$1; $f.iterations = iterations; $f.ok = ok; $f.phonetics = phonetics; $f.sound = sound; $f.sp = sp; $f.$s = $s; $f.$r = $r; return $f;
+	};
+	getRandomSound = function(phonetics) {
+		var $ptr, _entry, _i, _keys, _r, _ref, _tmp, _tmp$1, _tmp$2, _tmp$3, i, n, ok, phonetics, s, sound, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _entry = $f._entry; _i = $f._i; _keys = $f._keys; _r = $f._r; _ref = $f._ref; _tmp = $f._tmp; _tmp$1 = $f._tmp$1; _tmp$2 = $f._tmp$2; _tmp$3 = $f._tmp$3; i = $f.i; n = $f.n; ok = $f.ok; phonetics = $f.phonetics; s = $f.s; sound = $f.sound; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+		sound = new Sound.ptr(0, 0, 0, false, false, 0);
+		ok = false;
+		i = 0;
+		_r = rand.Intn($keys(phonetics.Sounds).length); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
+		n = _r;
+		_ref = phonetics.Sounds;
+		_i = 0;
+		_keys = $keys(_ref);
+		while (true) {
+			if (!(_i < _keys.length)) { break; }
+			_entry = _ref[_keys[_i]];
+			if (_entry === undefined) {
+				_i++;
+				continue;
+			}
+			s = $clone(_entry.v, Sound);
+			if (i === n) {
+				_tmp = $clone(s, Sound);
+				_tmp$1 = true;
+				Sound.copy(sound, _tmp);
+				ok = _tmp$1;
+				$s = -1; return [sound, ok];
+				return [sound, ok];
+			}
+			i = i + (1) >> 0;
+			_i++;
+		}
+		_tmp$2 = new Sound.ptr(0, 0, 0, false, false, 0);
+		_tmp$3 = false;
+		Sound.copy(sound, _tmp$2);
+		ok = _tmp$3;
+		$s = -1; return [sound, ok];
+		return [sound, ok];
+		/* */ } return; } if ($f === undefined) { $f = { $blk: getRandomSound }; } $f.$ptr = $ptr; $f._entry = _entry; $f._i = _i; $f._keys = _keys; $f._r = _r; $f._ref = _ref; $f._tmp = _tmp; $f._tmp$1 = _tmp$1; $f._tmp$2 = _tmp$2; $f._tmp$3 = _tmp$3; $f.i = i; $f.n = n; $f.ok = ok; $f.phonetics = phonetics; $f.s = s; $f.sound = sound; $f.$s = $s; $f.$r = $r; return $f;
+	};
+	RandomWord = function(phonetics, syllables) {
+		var $ptr, _r, _r$1, i, phonetics, syllables, word, x, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; _r$1 = $f._r$1; i = $f.i; phonetics = $f.phonetics; syllables = $f.syllables; word = $f.word; x = $f.x; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+		/* */ if (syllables === 0) { $s = 1; continue; }
+		/* */ $s = 2; continue;
+		/* if (syllables === 0) { */ case 1:
+			_r = rand.Intn(3); /* */ $s = 3; case 3: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
+			syllables = _r + 1 >> 0;
+		/* } */ case 2:
+		word = new Word.ptr($makeSlice(sliceType$8, syllables));
+		i = 0;
+		/* while (true) { */ case 4:
+			/* if (!(i < syllables)) { break; } */ if(!(i < syllables)) { $s = 5; continue; }
+			_r$1 = RandomSyllable(phonetics); /* */ $s = 6; case 6: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
+			Syllable.copy((x = word.Syllables, ((i < 0 || i >= x.$length) ? $throwRuntimeError("index out of range") : x.$array[x.$offset + i])), _r$1);
+			i = i + (1) >> 0;
+		/* } */ $s = 4; continue; case 5:
+		$s = -1; return word;
+		return word;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: RandomWord }; } $f.$ptr = $ptr; $f._r = _r; $f._r$1 = _r$1; $f.i = i; $f.phonetics = phonetics; $f.syllables = syllables; $f.word = word; $f.x = x; $f.$s = $s; $f.$r = $r; return $f;
+	};
+	$pkg.RandomWord = RandomWord;
+	Word.ptr.prototype.GetSounds = function() {
+		var $ptr, _i, _i$1, _i$2, _i$3, _ref, _ref$1, _ref$2, _ref$3, sound, sound$1, sound$2, sounds, syllable, word;
+		word = this;
+		sounds = $makeSlice(sliceType$6, 0);
+		_ref = word.Syllables;
+		_i = 0;
+		while (true) {
+			if (!(_i < _ref.$length)) { break; }
+			syllable = $clone(((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]), Syllable);
+			_ref$1 = syllable.OnsetCluster;
+			_i$1 = 0;
+			while (true) {
+				if (!(_i$1 < _ref$1.$length)) { break; }
+				sound = $clone(((_i$1 < 0 || _i$1 >= _ref$1.$length) ? $throwRuntimeError("index out of range") : _ref$1.$array[_ref$1.$offset + _i$1]), Sound);
+				sounds = $append(sounds, sound);
+				_i$1++;
+			}
+			_ref$2 = syllable.NucleusCluster;
+			_i$2 = 0;
+			while (true) {
+				if (!(_i$2 < _ref$2.$length)) { break; }
+				sound$1 = $clone(((_i$2 < 0 || _i$2 >= _ref$2.$length) ? $throwRuntimeError("index out of range") : _ref$2.$array[_ref$2.$offset + _i$2]), Sound);
+				sounds = $append(sounds, sound$1);
+				_i$2++;
+			}
+			_ref$3 = syllable.CodaCluster;
+			_i$3 = 0;
+			while (true) {
+				if (!(_i$3 < _ref$3.$length)) { break; }
+				sound$2 = $clone(((_i$3 < 0 || _i$3 >= _ref$3.$length) ? $throwRuntimeError("index out of range") : _ref$3.$array[_ref$3.$offset + _i$3]), Sound);
+				sounds = $append(sounds, sound$2);
+				_i$3++;
+			}
+			_i++;
+		}
+		return sounds;
+	};
+	Word.prototype.GetSounds = function() { return this.$val.GetSounds(); };
+	ptrType.methods = [{prop: "GetWordRepresentation", name: "GetWordRepresentation", pkg: "", typ: $funcType([Word], [$String], false)}, {prop: "GetRepresentation", name: "GetRepresentation", pkg: "", typ: $funcType([Sound], [$String], false)}, {prop: "RandomWord", name: "RandomWord", pkg: "", typ: $funcType([$Int], [Word], false)}];
+	ptrType$1.methods = [{prop: "randomiseSound", name: "randomiseSound", pkg: "github.com/Armienn/GoLanguage/phonetics", typ: $funcType([], [], false)}, {prop: "IsValid", name: "IsValid", pkg: "", typ: $funcType([], [$Bool], false)}, {prop: "Standardise", name: "Standardise", pkg: "", typ: $funcType([], [], false)}, {prop: "Encode", name: "Encode", pkg: "", typ: $funcType([], [$Int], false)}];
+	TristateBool.methods = [{prop: "ToBool", name: "ToBool", pkg: "", typ: $funcType([], [$Bool], false)}];
+	ptrType$2.methods = [{prop: "Fits", name: "Fits", pkg: "", typ: $funcType([Sound], [$Bool], false)}];
+	ptrType$3.methods = [{prop: "GetSounds", name: "GetSounds", pkg: "", typ: $funcType([], [sliceType$6], false)}];
+	Phonetics.init("", [{prop: "Sounds", name: "Sounds", exported: true, typ: mapType, tag: ""}, {prop: "Patterns", name: "Patterns", exported: true, typ: sliceType, tag: ""}]);
+	Sound.init("", [{prop: "Point", name: "Point", exported: true, typ: ArticulationPoint, tag: ""}, {prop: "Manner", name: "Manner", exported: true, typ: ArticulationManner, tag: ""}, {prop: "Shape", name: "Shape", exported: true, typ: TongueShape, tag: ""}, {prop: "Rounded", name: "Rounded", exported: true, typ: $Bool, tag: ""}, {prop: "Nasal", name: "Nasal", exported: true, typ: $Bool, tag: ""}, {prop: "Voice", name: "Voice", exported: true, typ: Voice, tag: ""}]);
+	SoundPattern.init("", [{prop: "Points", name: "Points", exported: true, typ: sliceType$2, tag: ""}, {prop: "Manners", name: "Manners", exported: true, typ: sliceType$3, tag: ""}, {prop: "Shapes", name: "Shapes", exported: true, typ: sliceType$4, tag: ""}, {prop: "Rounded", name: "Rounded", exported: true, typ: TristateBool, tag: ""}, {prop: "Nasal", name: "Nasal", exported: true, typ: TristateBool, tag: ""}, {prop: "Voices", name: "Voices", exported: true, typ: sliceType$5, tag: ""}]);
+	Syllable.init("", [{prop: "OnsetCluster", name: "OnsetCluster", exported: true, typ: sliceType$6, tag: ""}, {prop: "NucleusCluster", name: "NucleusCluster", exported: true, typ: sliceType$6, tag: ""}, {prop: "CodaCluster", name: "CodaCluster", exported: true, typ: sliceType$6, tag: ""}]);
+	SyllablePattern.init("", [{prop: "OnsetPatterns", name: "OnsetPatterns", exported: true, typ: sliceType$1, tag: ""}, {prop: "NucleusPatterns", name: "NucleusPatterns", exported: true, typ: sliceType$1, tag: ""}, {prop: "CodaPatterns", name: "CodaPatterns", exported: true, typ: sliceType$1, tag: ""}]);
+	Word.init("", [{prop: "Syllables", name: "Syllables", exported: true, typ: sliceType$8, tag: ""}]);
 	$init = function() {
 		$pkg.$init = function() {};
 		/* */ var $f, $c = false, $s = 0, $r; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
@@ -19210,71 +19376,67 @@ $packages["github.com/Armienn/GoLanguage/phonetics"] = (function() {
 	$pkg.$init = $init;
 	return $pkg;
 })();
-$packages["github.com/Armienn/GoLanguage"] = (function() {
-	var $pkg = {}, $init, fmt, grammatics, language, phonetics, rand, time, sliceType, main;
-	fmt = $packages["fmt"];
-	grammatics = $packages["github.com/Armienn/GoLanguage/grammatics"];
-	language = $packages["github.com/Armienn/GoLanguage/language"];
+$packages["github.com/Armienn/GoServer/gopher"] = (function() {
+	var $pkg = {}, $init, phonetics, js, rand, time, main, generateSomePhonetics;
 	phonetics = $packages["github.com/Armienn/GoLanguage/phonetics"];
+	js = $packages["github.com/gopherjs/gopherjs/js"];
 	rand = $packages["math/rand"];
 	time = $packages["time"];
-	sliceType = $sliceType($emptyInterface);
 	main = function() {
-		var $ptr, _i, _i$1, _r, _r$1, _r$2, _r$3, _ref, _ref$1, dansk, sentence, sentences, text, word, words, $s, $r;
-		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _i = $f._i; _i$1 = $f._i$1; _r = $f._r; _r$1 = $f._r$1; _r$2 = $f._r$2; _r$3 = $f._r$3; _ref = $f._ref; _ref$1 = $f._ref$1; dansk = $f.dansk; sentence = $f.sentence; sentences = $f.sentences; text = $f.text; word = $f.word; words = $f.words; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		dansk = language.GetDanishLanguage();
-		_r = grammatics.GetSentences(); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
-		sentences = _r;
-		_ref = sentences;
-		_i = 0;
-		/* while (true) { */ case 2:
-			/* if (!(_i < _ref.$length)) { break; } */ if(!(_i < _ref.$length)) { $s = 3; continue; }
-			sentence = ((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]);
-			text = "";
-			_r$1 = dansk.Translate(sentence); /* */ $s = 4; case 4: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
-			words = _r$1;
-			_ref$1 = words;
-			_i$1 = 0;
-			/* while (true) { */ case 5:
-				/* if (!(_i$1 < _ref$1.$length)) { break; } */ if(!(_i$1 < _ref$1.$length)) { $s = 6; continue; }
-				word = ((_i$1 < 0 || _i$1 >= _ref$1.$length) ? $throwRuntimeError("index out of range") : _ref$1.$array[_ref$1.$offset + _i$1]);
-				_r$2 = word.Representation(); /* */ $s = 7; case 7: if($c) { $c = false; _r$2 = _r$2.$blk(); } if (_r$2 && _r$2.$blk !== undefined) { break s; }
-				text = text + ($assertType(_r$2, $String) + " ");
-				_i$1++;
-			/* } */ $s = 5; continue; case 6:
-			_r$3 = fmt.Println(new sliceType([new $String(text)])); /* */ $s = 8; case 8: if($c) { $c = false; _r$3 = _r$3.$blk(); } if (_r$3 && _r$3.$blk !== undefined) { break s; }
-			_r$3;
-			_i++;
-		/* } */ $s = 2; continue; case 3:
+		var $ptr, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+		$r = generateSomePhonetics(); /* */ $s = 1; case 1: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 		$s = -1; return;
 		return;
-		/* */ } return; } if ($f === undefined) { $f = { $blk: main }; } $f.$ptr = $ptr; $f._i = _i; $f._i$1 = _i$1; $f._r = _r; $f._r$1 = _r$1; $f._r$2 = _r$2; $f._r$3 = _r$3; $f._ref = _ref; $f._ref$1 = _ref$1; $f.dansk = dansk; $f.sentence = sentence; $f.sentences = sentences; $f.text = text; $f.word = word; $f.words = words; $f.$s = $s; $f.$r = $r; return $f;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: main }; } $f.$ptr = $ptr; $f.$s = $s; $f.$r = $r; return $f;
+	};
+	generateSomePhonetics = function() {
+		var $ptr, _r, _r$1, dansk, i, ipa, lang, text, word, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; _r$1 = $f._r$1; dansk = $f.dansk; i = $f.i; ipa = $f.ipa; lang = $f.lang; text = $f.text; word = $f.word; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+		$r = rand.Seed(time.Now().UTC().UnixNano()); /* */ $s = 1; case 1: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+		_r = phonetics.RandomPhonetics(); /* */ $s = 2; case 2: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
+		lang = _r;
+		dansk = phonetics.GetDansk();
+		ipa = phonetics.GetIpa();
+		lang.Patterns = phonetics.GetMubPatterns();
+		text = "";
+		i = 0;
+		/* while (true) { */ case 3:
+			/* if (!(i < 20)) { break; } */ if(!(i < 20)) { $s = 4; continue; }
+			_r$1 = lang.RandomWord(0); /* */ $s = 5; case 5: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
+			word = $clone(_r$1, phonetics.Word);
+			text = text + (dansk.GetWordRepresentation(word) + "</br>");
+			text = text + (ipa.GetWordRepresentation(word) + "</br>");
+			i = i + (1) >> 0;
+		/* } */ $s = 3; continue; case 4:
+		$global.mulle.innerHTML = $externalize(text, $String);
+		$s = -1; return;
+		return;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: generateSomePhonetics }; } $f.$ptr = $ptr; $f._r = _r; $f._r$1 = _r$1; $f.dansk = dansk; $f.i = i; $f.ipa = ipa; $f.lang = lang; $f.text = text; $f.word = word; $f.$s = $s; $f.$r = $r; return $f;
 	};
 	$init = function() {
 		$pkg.$init = function() {};
 		/* */ var $f, $c = false, $s = 0, $r; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		$r = fmt.$init(); /* */ $s = 1; case 1: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
-		$r = grammatics.$init(); /* */ $s = 2; case 2: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
-		$r = language.$init(); /* */ $s = 3; case 3: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
-		$r = phonetics.$init(); /* */ $s = 4; case 4: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
-		$r = rand.$init(); /* */ $s = 5; case 5: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
-		$r = time.$init(); /* */ $s = 6; case 6: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
-		/* */ if ($pkg === $mainPkg) { $s = 7; continue; }
-		/* */ $s = 8; continue;
-		/* if ($pkg === $mainPkg) { */ case 7:
-			$r = main(); /* */ $s = 9; case 9: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+		$r = phonetics.$init(); /* */ $s = 1; case 1: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+		$r = js.$init(); /* */ $s = 2; case 2: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+		$r = rand.$init(); /* */ $s = 3; case 3: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+		$r = time.$init(); /* */ $s = 4; case 4: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+		/* */ if ($pkg === $mainPkg) { $s = 5; continue; }
+		/* */ $s = 6; continue;
+		/* if ($pkg === $mainPkg) { */ case 5:
+			$r = main(); /* */ $s = 7; case 7: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 			$mainFinished = true;
-		/* } */ case 8:
+		/* } */ case 6:
 		/* */ } return; } if ($f === undefined) { $f = { $blk: $init }; } $f.$s = $s; $f.$r = $r; return $f;
 	};
 	$pkg.$init = $init;
 	return $pkg;
 })();
 $synthesizeMethods();
-var $mainPkg = $packages["github.com/Armienn/GoLanguage"];
+var $mainPkg = $packages["github.com/Armienn/GoServer/gopher"];
 $packages["runtime"].$init();
 $go($mainPkg.$init, [], true);
 $flushConsole();
 
 }).call(this);
-//# sourceMappingURL=GoLanguage.js.map
+//# sourceMappingURL=gopher.js.map
