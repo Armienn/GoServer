@@ -6,7 +6,10 @@ import (
 )
 
 type Server struct {
-	Handlers       map[string]func(*Server, http.ResponseWriter, *http.Request, string, Session, interface{})
+	Handlers []struct {
+		path    string
+		handler func(*Server, http.ResponseWriter, *http.Request, string, Session, interface{})
+	}
 	SessionManager *SessionManager
 	RequireLogin   bool
 	Users          map[string]string
@@ -14,7 +17,10 @@ type Server struct {
 
 func NewServer(requireLogin bool) *Server {
 	server := new(Server)
-	server.Handlers = make(map[string]func(*Server, http.ResponseWriter, *http.Request, string, Session, interface{}))
+	server.Handlers = make([]struct {
+		path    string
+		handler func(*Server, http.ResponseWriter, *http.Request, string, Session, interface{})
+	}, 0)
 	server.Users = make(map[string]string)
 	server.SessionManager = NewSessionManager("sessionid", 3600)
 	server.RequireLogin = requireLogin
@@ -26,12 +32,18 @@ func NewServer(requireLogin bool) *Server {
 }
 
 func (server *Server) AddHandler(path string, handler func(*Server, http.ResponseWriter, *http.Request, string, Session, interface{})) {
-	server.Handlers[path] = handler
+	server.Handlers = append(server.Handlers, struct {
+		path    string
+		handler func(*Server, http.ResponseWriter, *http.Request, string, Session, interface{})
+	}{
+		path,
+		handler,
+	})
 }
 
 func (server *Server) ServeOnPort(port string) {
-	for path, handler := range server.Handlers {
-		http.HandleFunc(path, server.makeHandler(path, handler))
+	for _, handler := range server.Handlers {
+		http.HandleFunc(handler.path, server.makeHandler(handler.path, handler.handler))
 	}
 	http.ListenAndServe(port, nil)
 }

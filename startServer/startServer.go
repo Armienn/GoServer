@@ -4,11 +4,14 @@ import (
 	"html/template"
 	"net/http"
 
+	"io/ioutil"
+
 	"github.com/Armienn/GoServer"
 )
 
 func main() {
 	server := goserver.NewServer(false)
+	server.AddHandler("/js/", jsHandler)
 	server.AddHandler("/", viewHandler)
 	server.Serve()
 }
@@ -28,4 +31,9 @@ func viewHandler(server *goserver.Server, w http.ResponseWriter, r *http.Request
 		temp.Execute(w, data)
 	}
 	//w.Write([]byte("Jo hollo" + strconv.Itoa(count)))
+}
+
+func jsHandler(server *goserver.Server, w http.ResponseWriter, r *http.Request, path string, session goserver.Session, user interface{}) {
+	file, _ := ioutil.ReadFile(path)
+	w.Write(file)
 }
