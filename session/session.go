@@ -22,10 +22,10 @@ func NewSessionManager(cookieName string, maxlifetime int64) *SessionManager {
 }
 
 type Session interface {
-	Set(key, value interface{})      //set session value
-	Get(key interface{}) interface{} //get session value
-	Delete(key interface{})          //delete session value
-	SessionID() string               //back current sessionID
+	Set(key, value interface{})              //set session value
+	Get(key interface{}) (interface{}, bool) //get session value
+	Delete(key interface{})                  //delete session value
+	SessionID() string                       //back current sessionID
 	Age() int64
 }
 

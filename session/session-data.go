@@ -13,12 +13,12 @@ func (session *SessionData) Set(key, value interface{}) {
 	session.timeAccessed = time.Now()
 }
 
-func (session *SessionData) Get(key interface{}) interface{} {
+func (session *SessionData) Get(key interface{}) (interface{}, bool) {
 	session.timeAccessed = time.Now()
 	if v, ok := session.value[key]; ok {
-		return v
+		return v, true
 	}
-	return nil
+	return nil, false
 }
 
 func (session *SessionData) Delete(key interface{}) {
