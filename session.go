@@ -1,4 +1,4 @@
-package session
+package goserver
 
 import (
 	"crypto/rand"
@@ -48,7 +48,10 @@ func (manager *SessionManager) SessionStart(w http.ResponseWriter, r *http.Reque
 		return manager.sessionInit(sid)
 	}
 	sid, _ := url.QueryUnescape(cookie.Value)
-	return manager.Sessions[sid]
+	if session, ok := manager.Sessions[sid]; ok {
+		return session
+	}
+	return manager.sessionInit(sid)
 }
 
 func (manager *SessionManager) sessionInit(sid string) Session {
