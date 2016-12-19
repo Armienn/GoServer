@@ -9,11 +9,12 @@ import (
 
 func main() {
 	server := goserver.NewServer(true)
-	server.AddHandler("/view/", viewHandler)
+	server.AddHandler("/", viewHandler)
+	server.AddUser("kristjan", "cool")
 	server.Serve()
 }
 
-func viewHandler(w http.ResponseWriter, r *http.Request, path string, session goserver.Session, user interface{}) {
+func viewHandler(server *goserver.Server, w http.ResponseWriter, r *http.Request, path string, session goserver.Session, user interface{}) {
 	count := 0
 	value, ok := session.Get("musle")
 	if ok {
