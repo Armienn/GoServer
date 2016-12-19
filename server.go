@@ -1,6 +1,7 @@
 package goserver
 
 import (
+	"fmt"
 	"net/http"
 )
 
@@ -23,6 +24,12 @@ func (server *Server) AddHandler(path string, handler func(http.ResponseWriter, 
 }
 
 func (server *Server) ServeOnPort(port string) {
+	if server.RequireLogin {
+		http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+			session := server.SessionManager.SessionStart(w, r)
+			loginHandler(w, r, session)
+		})
+	}
 	for path, handler := range server.Handlers {
 		http.HandleFunc(path, server.makeHandler(path, handler))
 	}
@@ -38,20 +45,18 @@ func (server *Server) makeHandler(path string, handler func(http.ResponseWriter,
 		session := server.SessionManager.SessionStart(w, r)
 		user, ok := session.Get("user")
 		if !ok && server.RequireLogin {
-			if r.Method == "POST" {
-				handleLogin(w, r, session)
-			} else {
-				http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
-			}
+			http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
 		} else {
 			handler(w, r, r.URL.Path[len(path):], server.SessionManager.SessionStart(w, r), user)
 		}
 	}
 }
 
-func handleLogin(w http.ResponseWriter, r *http.Request, session Session) {
-	if r.URL.Path != "/login" {
-		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+func loginHandler(w http.ResponseWriter, r *http.Request, session Session) {
+	if r.Method == "GET" {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "<form method=\"post\" action=\"/login\"><input type=\"text\" name=\"user\"><input type=\"password\" name=\"password\"><input type=\"submit\" name=\"submit\"></form>")
 		return
 	}
 	err := r.ParseForm()
