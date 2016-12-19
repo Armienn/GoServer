@@ -16,6 +16,10 @@ func NewServer(requireLogin bool) *Server {
 	server.Handlers = make(map[string]func(http.ResponseWriter, *http.Request, string, Session, interface{}))
 	server.SessionManager = NewSessionManager("sessionid", 3600)
 	server.RequireLogin = requireLogin
+	if server.RequireLogin {
+		server.AddHandler("/login", loginHandler)
+		server.AddHandler("/logout", logoutHandler)
+	}
 	return server
 }
 
@@ -24,12 +28,6 @@ func (server *Server) AddHandler(path string, handler func(http.ResponseWriter, 
 }
 
 func (server *Server) ServeOnPort(port string) {
-	if server.RequireLogin {
-		http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
-			session := server.SessionManager.SessionStart(w, r)
-			loginHandler(w, r, session)
-		})
-	}
 	for path, handler := range server.Handlers {
 		http.HandleFunc(path, server.makeHandler(path, handler))
 	}
@@ -44,7 +42,7 @@ func (server *Server) makeHandler(path string, handler func(http.ResponseWriter,
 	return func(w http.ResponseWriter, r *http.Request) {
 		session := server.SessionManager.SessionStart(w, r)
 		user, ok := session.Get("user")
-		if !ok && server.RequireLogin {
+		if !ok && server.RequireLogin && path != "login" && path != "/login" && path != "/login/" {
 			http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
 		} else {
 			handler(w, r, r.URL.Path[len(path):], server.SessionManager.SessionStart(w, r), user)
@@ -52,7 +50,7 @@ func (server *Server) makeHandler(path string, handler func(http.ResponseWriter,
 	}
 }
 
-func loginHandler(w http.ResponseWriter, r *http.Request, session Session) {
+func loginHandler(w http.ResponseWriter, r *http.Request, path string, session Session, user interface{}) {
 	if r.Method == "GET" {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
@@ -66,14 +64,26 @@ func loginHandler(w http.ResponseWriter, r *http.Request, session Session) {
 	}
 	users, _ := r.Form["user"]
 	passwords, _ := r.Form["password"]
-	if len(users) > 0 && len(passwords) > 0 && userExists(users[0], passwords[0]) {
-		session.Set("user", users[0])
-		http.Redirect(w, r, "/", http.StatusAccepted)
+	if len(users) > 0 && len(passwords) > 0 && Login(users[0], passwords[0], session) {
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 	http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
 }
 
-func userExists(user string, password string) bool {
-	return user == password
+func Login(user string, password string, session Session) bool {
+	if user == password {
+		session.Set("user", user)
+		return true
+	}
+	return false
+}
+
+func logoutHandler(w http.ResponseWriter, r *http.Request, path string, session Session, user interface{}) {
+	Logout(session)
+	http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+}
+
+func Logout(session Session) {
+	session.Delete("user")
 }
