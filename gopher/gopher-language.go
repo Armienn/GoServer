@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	generateSomePhonetics()
+	js.Global.Get("gobutton").Set("onclick", generateSomePhonetics)
 }
 
 /*func printAlphabet(lang *phonetics.Phonetics, representation *phonetics.Phonetics) {

@@ -19377,18 +19377,15 @@ $packages["github.com/Armienn/GoLanguage/phonetics"] = (function() {
 	return $pkg;
 })();
 $packages["github.com/Armienn/GoServer/gopher"] = (function() {
-	var $pkg = {}, $init, phonetics, js, rand, time, main, generateSomePhonetics;
+	var $pkg = {}, $init, phonetics, js, rand, time, funcType, main, generateSomePhonetics;
 	phonetics = $packages["github.com/Armienn/GoLanguage/phonetics"];
 	js = $packages["github.com/gopherjs/gopherjs/js"];
 	rand = $packages["math/rand"];
 	time = $packages["time"];
+	funcType = $funcType([], [], false);
 	main = function() {
-		var $ptr, $s, $r;
-		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		$r = generateSomePhonetics(); /* */ $s = 1; case 1: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
-		$s = -1; return;
-		return;
-		/* */ } return; } if ($f === undefined) { $f = { $blk: main }; } $f.$ptr = $ptr; $f.$s = $s; $f.$r = $r; return $f;
+		var $ptr;
+		$global.gobutton.onclick = $externalize(generateSomePhonetics, funcType);
 	};
 	generateSomePhonetics = function() {
 		var $ptr, _r, _r$1, dansk, i, ipa, lang, text, word, $s, $r;
@@ -19421,12 +19418,10 @@ $packages["github.com/Armienn/GoServer/gopher"] = (function() {
 		$r = js.$init(); /* */ $s = 2; case 2: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 		$r = rand.$init(); /* */ $s = 3; case 3: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 		$r = time.$init(); /* */ $s = 4; case 4: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
-		/* */ if ($pkg === $mainPkg) { $s = 5; continue; }
-		/* */ $s = 6; continue;
-		/* if ($pkg === $mainPkg) { */ case 5:
-			$r = main(); /* */ $s = 7; case 7: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+		if ($pkg === $mainPkg) {
+			main();
 			$mainFinished = true;
-		/* } */ case 6:
+		}
 		/* */ } return; } if ($f === undefined) { $f = { $blk: $init }; } $f.$s = $s; $f.$r = $r; return $f;
 	};
 	$pkg.$init = $init;
