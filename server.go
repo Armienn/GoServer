@@ -32,6 +32,12 @@ func NewServer(requireLogin bool) *Server {
 }
 
 func (server *Server) AddHandler(path string, handler func(*Server, http.ResponseWriter, *http.Request, string, Session, interface{})) {
+	for i, existingHandler := range server.Handlers {
+		if existingHandler.path == path {
+			server.Handlers = append(server.Handlers[:i], server.Handlers[i+1:]...)
+			break
+		}
+	}
 	server.Handlers = append(server.Handlers, struct {
 		path    string
 		handler func(*Server, http.ResponseWriter, *http.Request, string, Session, interface{})
