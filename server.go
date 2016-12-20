@@ -6,50 +6,47 @@ import (
 )
 
 type Server struct {
-	Handlers []struct {
-		path    string
-		handler func(*Server, http.ResponseWriter, *http.Request, string, Session, interface{})
-	}
+	Handlers       []HandlerInfo
 	SessionManager *SessionManager
 	RequireLogin   bool
 	Users          map[string]string
 }
 
+type HandlerInfo struct {
+	Path           string
+	Handler        func(*Server, http.ResponseWriter, *http.Request, string, Session, interface{})
+	AllowAnonymous bool
+}
+
 func NewServer(requireLogin bool) *Server {
 	server := new(Server)
-	server.Handlers = make([]struct {
-		path    string
-		handler func(*Server, http.ResponseWriter, *http.Request, string, Session, interface{})
-	}, 0)
+	server.Handlers = make([]HandlerInfo, 0)
 	server.Users = make(map[string]string)
 	server.SessionManager = NewSessionManager("sessionid", 3600)
 	server.RequireLogin = requireLogin
 	if server.RequireLogin {
-		server.AddHandler("/login", loginHandler)
+		server.AddHandlerFrom(HandlerInfo{"/login", loginHandler, true})
 		server.AddHandler("/logout", logoutHandler)
 	}
 	return server
 }
-
 func (server *Server) AddHandler(path string, handler func(*Server, http.ResponseWriter, *http.Request, string, Session, interface{})) {
+	server.AddHandlerFrom(HandlerInfo{path, handler, false})
+}
+
+func (server *Server) AddHandlerFrom(handlerInfo HandlerInfo) {
 	for i, existingHandler := range server.Handlers {
-		if existingHandler.path == path {
+		if existingHandler.Path == handlerInfo.Path {
 			server.Handlers = append(server.Handlers[:i], server.Handlers[i+1:]...)
 			break
 		}
 	}
-	server.Handlers = append(server.Handlers, struct {
-		path    string
-		handler func(*Server, http.ResponseWriter, *http.Request, string, Session, interface{})
-	}{
-		path,
-		handler,
-	})
+	server.Handlers = append(server.Handlers, handlerInfo)
 }
 
 func (server *Server) ServeOnPort(port string) {
 	for _, handler := range server.Handlers {
-		http.HandleFunc(handler.path, server.makeHandler(handler.path, handler.handler))
+		http.HandleFunc(handler.Path, server.makeHandler(handler))
 	}
 	http.ListenAndServe(port, nil)
 }
@@ -58,14 +55,14 @@ func (server *Server) Serve() {
 	server.ServeOnPort(":8080")
 }
 
-func (server *Server) makeHandler(path string, handler func(*Server, http.ResponseWriter, *http.Request, string, Session, interface{})) func(http.ResponseWriter, *http.Request) {
+func (server *Server) makeHandler(handlerInfo HandlerInfo) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		session := server.SessionManager.SessionStart(w, r)
 		user, ok := session.Get("user")
-		if !ok && server.RequireLogin && path != "login" && path != "/login" && path != "/login/" {
+		if !ok && server.RequireLogin && !handlerInfo.AllowAnonymous {
 			http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
 		} else {
-			handler(server, w, r, r.URL.Path[len(path):], server.SessionManager.SessionStart(w, r), user)
+			handlerInfo.Handler(server, w, r, r.URL.Path[len(handlerInfo.Path):], server.SessionManager.SessionStart(w, r), user)
 		}
 	}
 }
