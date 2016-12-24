@@ -14,8 +14,15 @@ type Server struct {
 
 type HandlerInfo struct {
 	Path           string
-	Handler        func(*Server, http.ResponseWriter, *http.Request, string, Session, interface{})
+	GetHandler     func(http.ResponseWriter, *http.Request, Info)
+	PostHandler    func(http.ResponseWriter, *http.Request, Info)
 	AllowAnonymous bool
+}
+
+type Info struct {
+	Server  *Server
+	Session Session
+	Path    string
 }
 
 func NewServer(requireLogin bool) *Server {
@@ -25,13 +32,15 @@ func NewServer(requireLogin bool) *Server {
 	server.SessionManager = NewSessionManager("sessionid", 3600)
 	server.RequireLogin = requireLogin
 	if server.RequireLogin {
-		server.AddHandlerFrom(HandlerInfo{"/login", loginHandler, true})
+		server.AddHandlerFrom(HandlerInfo{"/login", loginGetHandler, nil, true})
+		server.AddHandlerFrom(HandlerInfo{"/login", loginPostHandler, nil, true})
 		server.AddHandler("/logout", logoutHandler)
 	}
 	return server
 }
-func (server *Server) AddHandler(path string, handler func(*Server, http.ResponseWriter, *http.Request, string, Session, interface{})) {
-	server.AddHandlerFrom(HandlerInfo{path, handler, false})
+
+func (server *Server) AddHandler(path string, handler func(http.ResponseWriter, *http.Request, Info)) {
+	server.AddHandlerFrom(HandlerInfo{path, handler, nil, false})
 }
 
 func (server *Server) AddHandlerFrom(handlerInfo HandlerInfo) {
@@ -58,36 +67,39 @@ func (server *Server) Serve() {
 func (server *Server) makeHandler(handlerInfo HandlerInfo) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		session := server.SessionManager.SessionStart(w, r)
-		user, ok := session.Get("user")
+		_, ok := session.Get("user")
 		if !ok && server.RequireLogin && !handlerInfo.AllowAnonymous {
 			http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
-		} else {
-			handlerInfo.Handler(server, w, r, r.URL.Path[len(handlerInfo.Path):], server.SessionManager.SessionStart(w, r), user)
+			return
+		}
+		info := Info{server, session, r.URL.Path[len(handlerInfo.Path):]}
+		if r.Method == "POST" && handlerInfo.PostHandler != nil {
+			handlerInfo.PostHandler(w, r, info)
+		} else if handlerInfo.GetHandler != nil {
+			handlerInfo.GetHandler(w, r, info)
 		}
 	}
 }
 
-func loginHandler(server *Server, w http.ResponseWriter, r *http.Request, path string, session Session, user interface{}) {
-	if r.Method == "GET" {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, "<form method=\"post\" action=\"/login\"><input type=\"text\" name=\"user\"><input type=\"password\" name=\"password\"><input type=\"submit\" name=\"submit\"></form>")
-		return
-	}
+func loginGetHandler(w http.ResponseWriter, r *http.Request, info Info) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "<form method=\"post\" action=\"/login\"><input type=\"text\" name=\"user\"><input type=\"password\" name=\"password\"><input type=\"submit\" name=\"submit\"></form>")
+}
+
+func loginPostHandler(w http.ResponseWriter, r *http.Request, info Info) {
 	err := r.ParseForm()
 	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+		loginGetHandler(w, r, info)
 		return
 	}
 	users, _ := r.Form["user"]
 	passwords, _ := r.Form["password"]
-	if len(users) > 0 && len(passwords) > 0 && server.Login(users[0], passwords[0], session) {
+	if len(users) > 0 && len(passwords) > 0 && info.Server.Login(users[0], passwords[0], info.Session) {
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "<form method=\"post\" action=\"/login\"><input type=\"text\" name=\"user\"><input type=\"password\" name=\"password\"><input type=\"submit\" name=\"submit\"></form>")
+	loginGetHandler(w, r, info)
 }
 
 func (server *Server) Login(user string, password string, session Session) bool {
@@ -98,8 +110,8 @@ func (server *Server) Login(user string, password string, session Session) bool 
 	return false
 }
 
-func logoutHandler(server *Server, w http.ResponseWriter, r *http.Request, path string, session Session, user interface{}) {
-	server.Logout(session)
+func logoutHandler(w http.ResponseWriter, r *http.Request, info Info) {
+	info.Server.Logout(info.Session)
 	http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
 }
 
@@ -109,4 +121,12 @@ func (server *Server) Logout(session Session) {
 
 func (server *Server) AddUser(user string, password string) {
 	server.Users[user] = password
+}
+
+func (info *Info) User() string {
+	user, ok := info.Session.Get("user")
+	if !ok {
+		return ""
+	}
+	return user.(string)
 }

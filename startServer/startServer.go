@@ -16,7 +16,7 @@ func main() {
 	server.Serve()
 }
 
-func viewHandler(server *goserver.Server, w http.ResponseWriter, r *http.Request, path string, session goserver.Session, user interface{}) {
+func viewHandler(w http.ResponseWriter, r *http.Request, info goserver.Info) {
 	data := struct{ Count int }{0}
 	value, ok := session.Get("musle")
 	if ok {
@@ -33,7 +33,7 @@ func viewHandler(server *goserver.Server, w http.ResponseWriter, r *http.Request
 	//w.Write([]byte("Jo hollo" + strconv.Itoa(count)))
 }
 
-func jsHandler(server *goserver.Server, w http.ResponseWriter, r *http.Request, path string, session goserver.Session, user interface{}) {
+func jsHandler(w http.ResponseWriter, r *http.Request, info goserver.Info) {
 	file, _ := ioutil.ReadFile(path)
 	w.Write(file)
 }
