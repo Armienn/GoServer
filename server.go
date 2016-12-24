@@ -32,8 +32,7 @@ func NewServer(requireLogin bool) *Server {
 	server.SessionManager = NewSessionManager("sessionid", 3600)
 	server.RequireLogin = requireLogin
 	if server.RequireLogin {
-		server.AddHandlerFrom(HandlerInfo{"/login", loginGetHandler, nil, true})
-		server.AddHandlerFrom(HandlerInfo{"/login", loginPostHandler, nil, true})
+		server.AddHandlerFrom(HandlerInfo{"/login", loginGetHandler, loginPostHandler, true})
 		server.AddHandler("/logout", logoutHandler)
 	}
 	return server
