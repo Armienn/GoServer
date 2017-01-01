@@ -59,7 +59,7 @@ func (server *Server) AddGetHandler(path string, handler func(http.ResponseWrite
 			return
 		}
 	}
-	server.Handlers = append(server.Handlers, HandlerInfo{path, handler, nil, restricted, true})
+	server.Handlers = append(server.Handlers, HandlerInfo{path, handler, nil, restricted, restricted})
 }
 
 func (server *Server) AddPostHandler(path string, handler func(http.ResponseWriter, *http.Request, Info), restricted bool) {
@@ -70,7 +70,7 @@ func (server *Server) AddPostHandler(path string, handler func(http.ResponseWrit
 			return
 		}
 	}
-	server.Handlers = append(server.Handlers, HandlerInfo{path, nil, handler, true, restricted})
+	server.Handlers = append(server.Handlers, HandlerInfo{path, nil, handler, restricted, restricted})
 }
 
 func (server *Server) ServeOnPort(port string) {
@@ -101,12 +101,13 @@ func (server *Server) makeHandler(handlerInfo HandlerInfo) func(http.ResponseWri
 }
 
 func getRelevantHandler(handlerInfo HandlerInfo, r *http.Request) (handler func(http.ResponseWriter, *http.Request, Info), restricted bool) {
+	handler = handlerInfo.GetHandler
+	restricted = handlerInfo.GetRestricted
 	if r.Method == "POST" {
-		handler = handlerInfo.PostHandler
+		if handlerInfo.PostHandler != nil {
+			handler = handlerInfo.PostHandler
+		}
 		restricted = handlerInfo.PostRestricted
-	} else {
-		handler = handlerInfo.GetHandler
-		restricted = handlerInfo.GetRestricted
 	}
 	return
 }
